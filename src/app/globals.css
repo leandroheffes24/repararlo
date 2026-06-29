@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
+@theme {
+  /* Brand — azul confianza */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #d9e6ff;
+  --color-brand-200: #bcd3ff;
+  --color-brand-300: #8eb6ff;
+  --color-brand-400: #5a8dff;
+  --color-brand-500: #3366ff;
+  --color-brand-600: #1f4fe0;
+  --color-brand-700: #1a3fb8;
+  --color-brand-800: #1c3893;
+  --color-brand-900: #1b3478;
+
+  /* Accent — ámbar / herramienta */
+  --color-accent-50: #fff8eb;
+  --color-accent-100: #ffedc7;
+  --color-accent-200: #ffd98a;
+  --color-accent-300: #ffc04d;
+  --color-accent-400: #fbab24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+
+  /* Tipografías */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-inter), ui-sans-serif, sans-serif;
+
+  /* Sombra de marca */
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 24px rgba(16, 24, 40, 0.06);
+  --shadow-card-hover: 0 2px 4px rgba(16, 24, 40, 0.06), 0 12px 36px rgba(16, 24, 40, 0.12);
+}
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilidad: degradé de marca para secciones hero */
+.bg-brand-gradient {
+  background-image: radial-gradient(
+      1200px 600px at 100% -10%,
+      rgba(51, 102, 255, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(900px 500px at -10% 10%, rgba(245, 158, 11, 0.12), transparent 55%),
+    linear-gradient(180deg, #f7f9ff 0%, #ffffff 100%);
+}
+
+/* Scrollbar sutil */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }

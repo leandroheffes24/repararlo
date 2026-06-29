@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔧 Repararlo
 
-## Getting Started
+**El "Mercado Libre" de los servicios para el hogar en Argentina.**
+Encontrá plomeros, electricistas, albañiles, gasistas y más: profesionales verificados,
+con reseñas reales, para contactar gratis.
 
-First, run the development server:
+> Estado actual: **MVP funcionando** con datos de ejemplo. Listo para conectar una base
+> de datos real (Supabase) y publicarse online (Vercel), todo con planes **gratuitos**.
+
+---
+
+## 🚀 Cómo correrla en tu compu
+
+Necesitás tener instalado [Node.js](https://nodejs.org) (versión 20 o superior).
 
 ```bash
+# 1. Instalar dependencias (solo la primera vez)
+npm install
+
+# 2. Levantar la app en modo desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Después abrí tu navegador en **http://localhost:3000** 🎉
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Otros comandos útiles:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build   # genera la versión optimizada para producción
+npm run start   # corre esa versión optimizada
+npm run lint    # revisa el código
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🗺️ Qué incluye el MVP
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Página | Ruta | Qué hace |
+|---|---|---|
+| Inicio | `/` | Hero con buscador, rubros, profesionales destacados, cómo funciona |
+| Búsqueda | `/buscar` | Buscador con filtros por rubro, zona, calificación, disponibilidad y orden |
+| Rubro | `/categorias/plomeria` | Listado de profesionales de cada rubro |
+| Perfil | `/profesionales/[nombre]` | Perfil completo: reseñas, especialidades, zonas y contacto |
+| Cómo funciona | `/como-funciona` | Explicación para clientes y profesionales |
+| Sumate | `/sumate` | Formulario de alta para profesionales |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Modelo de negocio (etapa actual):** la plataforma **conecta** clientes con
+profesionales de forma **gratuita**. El contacto es directo (WhatsApp / teléfono) y el
+pago lo arreglan entre las partes. Sin comisiones. La monetización (suscripciones,
+destacados, etc.) se suma más adelante, cuando haya volumen de usuarios.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧱 Tecnología (todo con plan gratis)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js 16** + **React 19** + **TypeScript** → la web.
+- **Tailwind CSS v4** → los estilos.
+- **lucide-react** → los íconos.
+- **Supabase** (opcional, ver abajo) → base de datos, usuarios y archivos.
+- **Vercel** (opcional, ver abajo) → para publicarla en internet.
+
+Los datos de ejemplo viven en [`src/lib/data/`](src/lib/data/). Hoy la app funciona
+100% con esos datos, sin depender de ningún servicio externo.
+
+---
+
+## 🗄️ Conectar la base de datos real (Supabase) — opcional
+
+Mientras tanto la app funciona con datos de ejemplo. Cuando quieras que los registros
+de profesionales se **guarden de verdad**:
+
+1. Creá una cuenta gratis en **https://supabase.com** y un proyecto nuevo.
+2. En el panel de Supabase: **SQL Editor → New query**, pegá el contenido de
+   [`supabase/schema.sql`](supabase/schema.sql) y ejecutá (crea las tablas y los rubros).
+3. En **Project Settings → API** copiá los 3 valores.
+4. En la raíz del proyecto, creá un archivo `.env.local` (copiá `.env.local.example`) y
+   completá:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-clave-anon
+   SUPABASE_SERVICE_ROLE_KEY=tu-clave-service-role
+   ```
+
+5. Reiniciá la app (`npm run dev`).
+
+Desde ese momento, cada vez que alguien complete el formulario de **/sumate**, su
+solicitud queda guardada en la tabla `professional_applications` de tu base de datos.
+
+> Si **no** configurás Supabase, el formulario igual funciona en "modo demo" (no rompe
+> nada, simplemente no persiste los datos).
+
+---
+
+## 🌐 Publicarla en internet (Vercel) — opcional
+
+1. Subí el proyecto a un repositorio de **GitHub**.
+2. Entrá a **https://vercel.com**, "Add New Project" e importá ese repo.
+3. Si usás Supabase, cargá las mismas variables de entorno en Vercel
+   (**Settings → Environment Variables**).
+4. Deploy. ✅ Vercel te da una URL pública gratis (y podés conectar tu dominio
+   `repararlo.com.ar` después).
+
+---
+
+## 🛣️ Próximos pasos sugeridos
+
+- [ ] Registro e inicio de sesión real (Supabase Auth) para clientes y profesionales.
+- [ ] Panel del profesional para editar su perfil y subir fotos de trabajos.
+- [ ] Que los profesionales reales reemplacen a los datos de ejemplo (leer desde Supabase).
+- [ ] Sistema de reseñas verificadas (solo quien contrató puede calificar).
+- [ ] Notificaciones por WhatsApp/email cuando llega un contacto.
+- [ ] Geolocalización y búsqueda por mapa.
+- [ ] Monetización: perfiles destacados y planes para profesionales.
+
+---
+
+Hecho en Argentina 🇦🇷 — pensado para escalar a toda Latinoamérica.
