@@ -28,6 +28,13 @@ export function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+export function slugify(text: string): string {
+  return normalize(text)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
 export function initials(name: string): string {
   return name
     .split(" ")
@@ -39,9 +46,16 @@ export function initials(name: string): string {
 
 export type SortKey = "relevancia" | "mejor-puntuados" | "mas-trabajos" | "precio";
 
+/** Compara la provincia del profesional con la elegida (nombres canónicos). */
+export function provinceMatches(proProvince: string, selected: string): boolean {
+  if (!selected) return true;
+  return normalize(proProvince) === normalize(selected);
+}
+
 export type SearchFilters = {
   query?: string;
   category?: string;
+  province?: string;
   area?: string;
   minRating?: number;
   verifiedOnly?: boolean;
@@ -58,6 +72,7 @@ export function filterProfessionals(
 
   let result = list.filter((p) => {
     if (filters.category && !p.categorySlugs.includes(filters.category)) return false;
+    if (filters.province && !provinceMatches(p.province, filters.province)) return false;
     if (filters.verifiedOnly && !p.verified) return false;
     if (filters.availableOnly && !p.available) return false;
     if (filters.minRating && p.rating < filters.minRating) return false;

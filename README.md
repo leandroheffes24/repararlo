@@ -42,7 +42,10 @@ npm run lint    # revisa el código
 | Rubro | `/categorias/plomeria` | Listado de profesionales de cada rubro |
 | Perfil | `/profesionales/[nombre]` | Perfil completo: reseñas, especialidades, zonas y contacto |
 | Cómo funciona | `/como-funciona` | Explicación para clientes y profesionales |
-| Sumate | `/sumate` | Formulario de alta para profesionales |
+| Sumate | `/sumate` | Landing + registro para profesionales |
+| Registro | `/registrarse` | Crear cuenta (cliente o profesional) |
+| Ingresar | `/ingresar` | Inicio de sesión |
+| Mi panel | `/panel` | Panel protegido: el profesional crea y edita su perfil |
 
 **Modelo de negocio (etapa actual):** la plataforma **conecta** clientes con
 profesionales de forma **gratuita**. El contacto es directo (WhatsApp / teléfono) y el
@@ -84,11 +87,19 @@ de profesionales se **guarden de verdad**:
 
 5. Reiniciá la app (`npm run dev`).
 
-Desde ese momento, cada vez que alguien complete el formulario de **/sumate**, su
-solicitud queda guardada en la tabla `professional_applications` de tu base de datos.
+Desde ese momento funciona la **autenticación real**: las personas se registran como
+cliente o profesional, y cada profesional que crea su perfil queda guardado en la base
+y **aparece automáticamente en el directorio**.
 
-> Si **no** configurás Supabase, el formulario igual funciona en "modo demo" (no rompe
-> nada, simplemente no persiste los datos).
+> La app es auto-suficiente: con `schema.sql` alcanza. El archivo
+> `supabase/02-auth-policies.sql` es **opcional** (agrega políticas de seguridad extra),
+> no es necesario para que el registro funcione.
+
+### ✉️ Importante: confirmación de email
+
+Por defecto, Supabase pide **confirmar el email** al registrarse. Para testear más rápido
+podés desactivarlo en **Authentication → Sign In / Providers → Email → "Confirm email"**.
+La app contempla las dos opciones (si está activado, muestra un aviso de "revisá tu email").
 
 ---
 
@@ -105,9 +116,10 @@ solicitud queda guardada en la tabla `professional_applications` de tu base de d
 
 ## 🛣️ Próximos pasos sugeridos
 
-- [ ] Registro e inicio de sesión real (Supabase Auth) para clientes y profesionales.
-- [ ] Panel del profesional para editar su perfil y subir fotos de trabajos.
-- [ ] Que los profesionales reales reemplacen a los datos de ejemplo (leer desde Supabase).
+- [x] Registro e inicio de sesión real (Supabase Auth) para clientes y profesionales.
+- [x] Panel del profesional para editar su perfil.
+- [x] Directorio que lee profesionales reales desde Supabase (con respaldo a ejemplos).
+- [ ] Subir fotos de trabajos al perfil (Supabase Storage).
 - [ ] Sistema de reseñas verificadas (solo quien contrató puede calificar).
 - [ ] Notificaciones por WhatsApp/email cuando llega un contacto.
 - [ ] Geolocalización y búsqueda por mapa.

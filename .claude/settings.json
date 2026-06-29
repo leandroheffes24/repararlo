@@ -6,7 +6,16 @@
       "PowerShell(npm install lucide-react clsx 2>&1)",
       "PowerShell(npm run build 2>&1)",
       "PowerShell($env:PORT=3100; npm run start)",
-      "PowerShell(npm install @supabase/supabase-js 2>&1)"
+      "PowerShell(npm install @supabase/supabase-js 2>&1)",
+      "PowerShell(npm install @supabase/ssr 2>&1)",
+      "PowerShell(node --env-file=.env.local _diag.mjs)",
+      "PowerShell(node --env-file=.env.local _test_write.mjs)",
+      "PowerShell(node --env-file=.env.local _test_auth.mjs)",
+      "PowerShell(node --env-file=.env.local _test_flow.mjs)",
+      "Bash(rm -f _diag.mjs _test_write.mjs _test_auth.mjs _test_flow.mjs)",
+      "Bash(ls _*.mjs)",
+      "PowerShell(npm run dev)",
+      "PowerShell(node --env-file=.env.local _chk.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo"

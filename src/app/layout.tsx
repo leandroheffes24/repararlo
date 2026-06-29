@@ -54,7 +54,10 @@ export default function RootLayout({
       lang="es-AR"
       className={`${inter.variable} ${display.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col bg-white text-slate-900 antialiased">
+      <body
+        className="min-h-full flex flex-col bg-white text-slate-900 antialiased"
+        suppressHydrationWarning
+      >
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

@@ -4,26 +4,26 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, MapPin } from "lucide-react";
 import { categories } from "@/lib/data/categories";
-import { popularAreas } from "@/lib/data/locations";
+import { ProvinceSelect } from "./ProvinceSelect";
 
 export function SearchBar({
   size = "lg",
   defaultQuery = "",
-  defaultArea = "",
+  defaultProvinceId = "",
 }: {
   size?: "lg" | "md";
   defaultQuery?: string;
-  defaultArea?: string;
+  defaultProvinceId?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState(defaultQuery);
-  const [area, setArea] = useState(defaultArea);
+  const [provinceId, setProvinceId] = useState(defaultProvinceId);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
-    if (area.trim()) params.set("zona", area.trim());
+    if (provinceId) params.set("provincia", provinceId);
     router.push(`/buscar${params.toString() ? `?${params.toString()}` : ""}`);
   }
 
@@ -56,20 +56,12 @@ export function SearchBar({
 
       <div className={`flex flex-1 items-center gap-2.5 px-4 ${pad}`}>
         <MapPin className="h-5 w-5 shrink-0 text-slate-400" />
-        <input
-          type="text"
-          list="area-list"
-          value={area}
-          onChange={(e) => setArea(e.target.value)}
-          placeholder="¿En qué zona?"
-          className="w-full bg-transparent text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
-          aria-label="En qué zona"
+        <ProvinceSelect
+          value={provinceId}
+          onChange={setProvinceId}
+          ariaLabel="En qué provincia"
+          className="w-full cursor-pointer bg-transparent text-[15px] focus:outline-none"
         />
-        <datalist id="area-list">
-          {popularAreas.map((a) => (
-            <option key={a} value={a} />
-          ))}
-        </datalist>
       </div>
 
       <button

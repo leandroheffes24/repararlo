@@ -1,0 +1,113 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { getServiceSupabase, createSupabaseServer } from "@/lib/supabase/server";
+import { slugify } from "@/lib/utils";
+
+export type ProfileInput = {
+  name: string;
+  headline: string;
+  province: string;
+  city: string;
+  serviceAreas: string; // separadas por coma
+  about: string;
+  skills: string; // separadas por coma
+  priceFrom: string;
+  priceUnit: "hora" | "visita" | "presupuesto";
+  phone: string;
+  available: boolean;
+  categorySlugs: string[];
+};
+
+export type SaveResult = { ok: boolean; error?: string; slug?: string };
+
+function splitList(value: string): string[] {
+  return value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export async function saveProfileAction(input: ProfileInput): Promise<SaveResult> {
+  // 1. Verificar identidad
+  const authClient = await createSupabaseServer();
+  if (!authClient) return { ok: false, error: "Autenticación no configurada." };
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+  if (!user) return { ok: false, error: "Tenés que iniciar sesión." };
+
+  const db = getServiceSupabase();
+  if (!db) return { ok: false, error: "Base de datos no configurada." };
+
+  // 2. Validaciones mínimas
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Ingresá tu nombre." };
+  if (input.categorySlugs.length === 0)
+    return { ok: false, error: "Elegí al menos un rubro." };
+
+  // Aseguramos que exista la fila en "profiles" (no dependemos de triggers de SQL).
+  // Es necesario porque professionals.profile_id apunta a profiles.id.
+  await db
+    .from("profiles")
+    .upsert({ id: user.id, full_name: name, role: "professional" }, { onConflict: "id" });
+
+  const priceFrom = input.priceFrom ? Number(input.priceFrom.replace(/[^0-9]/g, "")) : null;
+
+  const fields = {
+    name,
+    headline: input.headline.trim() || null,
+    province: input.province.trim() || null,
+    city: input.city.trim() || null,
+    service_areas: splitList(input.serviceAreas),
+    about: input.about.trim() || null,
+    skills: splitList(input.skills),
+    price_from: priceFrom,
+    price_unit: input.priceUnit,
+    phone: input.phone.trim() || null,
+    available: input.available,
+  };
+
+  // 3. ¿Ya existe el profesional de este usuario?
+  const { data: existing } = await db
+    .from("professionals")
+    .select("id, slug")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  let proId: string;
+  let slug: string;
+
+  if (existing) {
+    proId = existing.id;
+    slug = existing.slug;
+    const { error } = await db.from("professionals").update(fields).eq("id", proId);
+    if (error) return { ok: false, error: "No pudimos guardar los cambios." };
+  } else {
+    slug = `${slugify(name) || "profesional"}-${user.id.slice(0, 6)}`;
+    const { data: inserted, error } = await db
+      .from("professionals")
+      .insert({ ...fields, profile_id: user.id, slug })
+      .select("id")
+      .single();
+    if (error || !inserted) return { ok: false, error: "No pudimos crear tu perfil." };
+    proId = inserted.id;
+  }
+
+  // 4. Actualizar rubros (relación N:M)
+  await db.from("professional_categories").delete().eq("professional_id", proId);
+  const rows = input.categorySlugs.map((category_slug) => ({
+    professional_id: proId,
+    category_slug,
+  }));
+  if (rows.length > 0) {
+    await db.from("professional_categories").insert(rows);
+  }
+
+  // 5. Refrescar las páginas que muestran el directorio
+  revalidatePath("/");
+  revalidatePath("/buscar");
+  revalidatePath(`/profesionales/${slug}`);
+
+  return { ok: true, slug };
+}

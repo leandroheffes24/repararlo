@@ -12,11 +12,14 @@ import { SearchBar } from "@/components/SearchBar";
 import { CategoryCard } from "@/components/CategoryCard";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { categories } from "@/lib/data/categories";
-import { professionals } from "@/lib/data/professionals";
+import { getProfessionals } from "@/lib/data/repository";
 import { filterProfessionals } from "@/lib/utils";
 
-export default function Home() {
-  const featured = filterProfessionals(professionals, {
+export const revalidate = 30;
+
+export default async function Home() {
+  const proList = await getProfessionals();
+  const featured = filterProfessionals(proList, {
     sort: "mejor-puntuados",
   }).slice(0, 6);
 

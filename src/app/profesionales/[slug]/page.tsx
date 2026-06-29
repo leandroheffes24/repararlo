@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, Briefcase, CalendarClock, Wrench } from "lucide-react";
-import { professionals, professionalBySlug } from "@/lib/data/professionals";
+import { professionals } from "@/lib/data/professionals";
+import { getProfessionalBySlug } from "@/lib/data/repository";
 import { categoryBySlug } from "@/lib/data/categories";
 import { Avatar } from "@/components/Avatar";
 import { RatingStars } from "@/components/RatingStars";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ContactCard } from "@/components/ContactCard";
 import { formatDate } from "@/lib/utils";
+
+export const revalidate = 30;
 
 export function generateStaticParams() {
   return professionals.map((p) => ({ slug: p.slug }));
@@ -20,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const pro = professionalBySlug(slug);
+  const pro = await getProfessionalBySlug(slug);
   if (!pro) return { title: "Profesional no encontrado" };
   return {
     title: `${pro.name} — ${pro.headline}`,
@@ -34,7 +37,7 @@ export default async function ProfessionalPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pro = professionalBySlug(slug);
+  const pro = await getProfessionalBySlug(slug);
   if (!pro) notFound();
 
   return (

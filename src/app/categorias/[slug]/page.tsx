@@ -3,10 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
 import { categories, categoryBySlug } from "@/lib/data/categories";
-import { professionalsByCategory } from "@/lib/data/professionals";
+import { getProfessionalsByCategory } from "@/lib/data/repository";
 import { filterProfessionals } from "@/lib/utils";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { CategoryCard } from "@/components/CategoryCard";
+
+export const revalidate = 30;
 
 export function generateStaticParams() {
   return categories.map((c) => ({ slug: c.slug }));
@@ -35,7 +37,7 @@ export default async function CategoryPage({
   const category = categoryBySlug(slug);
   if (!category) notFound();
 
-  const pros = filterProfessionals(professionalsByCategory(category.slug), {
+  const pros = filterProfessionals(await getProfessionalsByCategory(category.slug), {
     sort: "relevancia",
   });
 

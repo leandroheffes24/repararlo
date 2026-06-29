@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 import { Search, MapPin, SlidersHorizontal, X, Star, Frown } from "lucide-react";
 import { ProfessionalCard } from "./ProfessionalCard";
+import { ProvinceSelect } from "./ProvinceSelect";
 import { categories } from "@/lib/data/categories";
-import { professionals } from "@/lib/data/professionals";
-import { filterProfessionals, type SortKey } from "@/lib/utils";
+import { provinceById } from "@/lib/data/provinces";
+import type { Professional } from "@/lib/types";
+import { filterProfessionals, provinceMatches, type SortKey } from "@/lib/utils";
 
 const ratingOptions = [
   { value: 0, label: "Todas" },
@@ -22,15 +24,22 @@ const sortOptions: { value: SortKey; label: string }[] = [
 ];
 
 export function SearchExperience({
+  proList,
   initialQuery = "",
+  initialProvinceId = "",
+  initialProvinceName = "",
   initialArea = "",
   initialCategory = "",
 }: {
+  proList: Professional[];
   initialQuery?: string;
+  initialProvinceId?: string;
+  initialProvinceName?: string;
   initialArea?: string;
   initialCategory?: string;
 }) {
   const [query, setQuery] = useState(initialQuery);
+  const [provinceId, setProvinceId] = useState(initialProvinceId);
   const [area, setArea] = useState(initialArea);
   const [category, setCategory] = useState(initialCategory);
   const [minRating, setMinRating] = useState(0);
@@ -39,10 +48,13 @@ export function SearchExperience({
   const [sort, setSort] = useState<SortKey>("relevancia");
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const provinceName = provinceById(provinceId)?.name ?? initialProvinceName;
+
   const results = useMemo(
     () =>
-      filterProfessionals(professionals, {
+      filterProfessionals(proList, {
         query,
+        province: provinceName || undefined,
         area,
         category: category || undefined,
         minRating,
@@ -50,21 +62,80 @@ export function SearchExperience({
         availableOnly,
         sort,
       }),
-    [query, area, category, minRating, verifiedOnly, availableOnly, sort]
+    [proList, query, provinceName, area, category, minRating, verifiedOnly, availableOnly, sort]
   );
+
+  // Localidades que TIENEN profesionales en la provincia elegida (facetas)
+  const localityFacets = useMemo(() => {
+    if (!provinceName) return [];
+    const counts = new Map<string, number>();
+    proList
+      .filter((p) => provinceMatches(p.province, provinceName))
+      .forEach((p) => {
+        const locs = new Set<string>();
+        if (p.city) locs.add(p.city);
+        p.serviceAreas.forEach((a) => a && locs.add(a));
+        locs.forEach((l) => counts.set(l, (counts.get(l) ?? 0) + 1));
+      });
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "es"))
+      .map(([name, count]) => ({ name, count }));
+  }, [proList, provinceName]);
+
+  function changeProvince(id: string) {
+    setProvinceId(id);
+    setArea(""); // las localidades dependen de la provincia
+  }
 
   function clearFilters() {
     setCategory("");
+    setArea("");
     setMinRating(0);
     setVerifiedOnly(false);
     setAvailableOnly(false);
   }
 
   const filtersActive =
-    Boolean(category) || minRating > 0 || verifiedOnly || availableOnly;
+    Boolean(category) || Boolean(area) || minRating > 0 || verifiedOnly || availableOnly;
 
   const FiltersPanel = (
     <div className="space-y-6">
+      {/* Localidad (depende de la provincia) */}
+      {provinceName && localityFacets.length > 0 && (
+        <div>
+          <h3 className="mb-1 text-sm font-semibold text-slate-900">Localidad</h3>
+          <p className="mb-3 text-xs text-slate-400">
+            {provinceById(provinceId)?.label ?? provinceName}
+          </p>
+          <div className="-mr-1 max-h-72 space-y-1 overflow-auto pr-1">
+            <button
+              onClick={() => setArea("")}
+              className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                !area
+                  ? "bg-brand-50 font-semibold text-brand-700"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Todas las localidades
+            </button>
+            {localityFacets.map((f) => (
+              <button
+                key={f.name}
+                onClick={() => setArea(f.name)}
+                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                  area === f.name
+                    ? "bg-brand-50 font-semibold text-brand-700"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                <span className="shrink-0 text-xs text-slate-400">{f.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <h3 className="mb-3 text-sm font-semibold text-slate-900">Rubro</h3>
         <div className="space-y-1">
@@ -169,11 +240,11 @@ export function SearchExperience({
         <div className="hidden h-8 w-px bg-slate-200 sm:block" />
         <div className="flex flex-1 items-center gap-2.5 px-4 py-2.5">
           <MapPin className="h-5 w-5 shrink-0 text-slate-400" />
-          <input
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            placeholder="¿En qué zona?"
-            className="w-full bg-transparent text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
+          <ProvinceSelect
+            value={provinceId}
+            onChange={changeProvince}
+            ariaLabel="Provincia"
+            className="w-full cursor-pointer bg-transparent text-[15px] focus:outline-none"
           />
         </div>
       </div>
@@ -192,6 +263,11 @@ export function SearchExperience({
             <p className="text-sm text-slate-600">
               <span className="font-semibold text-slate-900">{results.length}</span>{" "}
               {results.length === 1 ? "profesional" : "profesionales"}
+              {area
+                ? ` en ${area}`
+                : provinceName
+                  ? ` en ${provinceById(provinceId)?.label ?? provinceName}`
+                  : ""}
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -200,9 +276,7 @@ export function SearchExperience({
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 Filtros
-                {filtersActive && (
-                  <span className="h-2 w-2 rounded-full bg-brand-600" />
-                )}
+                {filtersActive && <span className="h-2 w-2 rounded-full bg-brand-600" />}
               </button>
               <label className="sr-only" htmlFor="sort">
                 Ordenar
@@ -241,12 +315,11 @@ export function SearchExperience({
               <button
                 onClick={() => {
                   setQuery("");
-                  setArea("");
                   clearFilters();
                 }}
                 className="mt-5 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
               >
-                Limpiar búsqueda
+                Limpiar filtros
               </button>
             </div>
           )}

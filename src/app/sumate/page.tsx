@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Users, TrendingUp, BadgeCheck, Wallet } from "lucide-react";
-import { JoinForm } from "@/components/JoinForm";
+import Link from "next/link";
+import { Users, TrendingUp, BadgeCheck, Wallet, ArrowRight } from "lucide-react";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Sumate como profesional",
@@ -31,7 +33,8 @@ const benefits = [
   },
 ];
 
-export default function SumatePage() {
+export default async function SumatePage() {
+  const user = await getCurrentUser();
   return (
     <section className="bg-brand-gradient">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -78,9 +81,26 @@ export default function SumatePage() {
             </div>
           </div>
 
-          {/* Formulario */}
+          {/* Formulario / CTA */}
           <div className="mt-10 lg:mt-0">
-            <JoinForm />
+            {user ? (
+              <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-[var(--shadow-card)]">
+                <h3 className="font-display text-xl font-bold text-slate-900">
+                  Ya tenés una cuenta
+                </h3>
+                <p className="mt-2 text-slate-600">
+                  Completá o editá tu perfil profesional desde tu panel.
+                </p>
+                <Link
+                  href="/panel?modo=profesional"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-600 px-6 py-3 font-semibold text-white hover:bg-brand-700"
+                >
+                  Ir a mi perfil profesional <ArrowRight className="h-5 w-5" />
+                </Link>
+              </div>
+            ) : (
+              <RegisterForm defaultRole="professional" lockRole />
+            )}
           </div>
         </div>
       </div>

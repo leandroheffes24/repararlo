@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, X, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Menu, X, Search, LayoutDashboard } from "lucide-react";
 import { Logo } from "./Logo";
+import { SignOutButton } from "./auth/SignOutButton";
+import { createSupabaseBrowser, supabaseBrowserConfigured } from "@/lib/supabase/client";
 
 const navLinks = [
   { href: "/buscar", label: "Buscar profesionales" },
@@ -13,6 +15,19 @@ const navLinks = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (!supabaseBrowserConfigured) return;
+    const supabase = createSupabaseBrowser();
+    supabase.auth.getUser().then(({ data }) => setLoggedIn(Boolean(data.user)));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(Boolean(session?.user));
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/85 backdrop-blur-md">
@@ -32,19 +47,33 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link
-            href="/buscar"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
-          >
-            <Search className="h-4 w-4" />
-            Buscar
-          </Link>
-          <Link
-            href="/sumate"
-            className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
-          >
-            Sumate gratis
-          </Link>
+          {loggedIn ? (
+            <>
+              <Link
+                href="/panel"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Mi panel
+              </Link>
+              <SignOutButton className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900" />
+            </>
+          ) : (
+            <>
+              <Link
+                href="/ingresar"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+              >
+                Ingresar
+              </Link>
+              <Link
+                href="/registrarse?rol=profesional"
+                className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+              >
+                Sumate gratis
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -60,23 +89,51 @@ export function Header() {
       {open && (
         <div className="border-t border-slate-100 bg-white md:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-50"
-              >
-                {link.label}
-              </Link>
-            ))}
             <Link
-              href="/sumate"
+              href="/buscar"
               onClick={() => setOpen(false)}
-              className="mt-1 rounded-lg bg-brand-600 px-3 py-2.5 text-center text-base font-semibold text-white"
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-50"
             >
-              Sumate gratis
+              <Search className="h-4 w-4" /> Buscar profesionales
             </Link>
+            <Link
+              href="/como-funciona"
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Cómo funciona
+            </Link>
+            {loggedIn ? (
+              <>
+                <Link
+                  href="/panel"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Mi panel
+                </Link>
+                <div className="px-3 py-2.5">
+                  <SignOutButton />
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/ingresar"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2.5 text-base font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Ingresar
+                </Link>
+                <Link
+                  href="/registrarse?rol=profesional"
+                  onClick={() => setOpen(false)}
+                  className="mt-1 rounded-lg bg-brand-600 px-3 py-2.5 text-center text-base font-semibold text-white"
+                >
+                  Sumate gratis
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}
