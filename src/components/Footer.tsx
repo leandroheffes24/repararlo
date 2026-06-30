@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { categories } from "@/lib/data/categories";
+import { FeedbackLink } from "./FeedbackLink";
 
 export function Footer() {
   const topCategories = categories.slice(0, 6);
@@ -55,6 +56,9 @@ export function Footer() {
               <Link href="/sumate" className="text-sm text-slate-500 hover:text-brand-700">
                 Sumate como profesional
               </Link>
+            </li>
+            <li>
+              <FeedbackLink />
             </li>
           </ul>
         </div>
