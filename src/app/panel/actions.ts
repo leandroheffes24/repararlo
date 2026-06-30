@@ -169,3 +169,78 @@ export async function confirmHiringProAction(
   if (proRel.slug) revalidatePath(`/profesionales/${proRel.slug}`);
   return { ok: true };
 }
+
+/**
+ * Elimina la cuenta del usuario logueado POR COMPLETO (cliente o profesional):
+ * - sus reseñas escritas (y recalcula el rating de los profesionales afectados)
+ * - su ficha de profesional, si tiene (cascada: rubros, reseñas recibidas, contactos)
+ * - la cuenta de auth (cascada: profile, contactos como cliente)
+ * Es irreversible.
+ */
+export async function deleteAccountAction(): Promise<{ ok: boolean; error?: string }> {
+  const auth = await createSupabaseServer();
+  if (!auth) return { ok: false, error: "Autenticación no configurada." };
+  const {
+    data: { user },
+  } = await auth.auth.getUser();
+  if (!user) return { ok: false, error: "No hay una sesión activa." };
+
+  const db = getServiceSupabase();
+  if (!db) return { ok: false, error: "Base de datos no configurada." };
+
+  // 1. Reseñas que escribió (guardamos a qué pros afectó para recalcular)
+  let affected: string[] = [];
+  try {
+    const { data: authored } = await db
+      .from("reviews")
+      .select("professional_id")
+      .eq("author_id", user.id);
+    affected = [...new Set((authored ?? []).map((r) => r.professional_id as string))];
+    await db.from("reviews").delete().eq("author_id", user.id);
+  } catch {
+    /* sin reseñas o tabla ausente */
+  }
+
+  // 2. Sus fichas de profesional (cascada borra rubros, reseñas recibidas y contactos)
+  let myProIds: string[] = [];
+  try {
+    const { data: myPros } = await db
+      .from("professionals")
+      .select("id")
+      .eq("profile_id", user.id);
+    myProIds = (myPros ?? []).map((p) => p.id as string);
+    if (myProIds.length > 0) {
+      await db.from("professionals").delete().eq("profile_id", user.id);
+    }
+  } catch {
+    /* no es profesional */
+  }
+
+  // 3. Borrar la cuenta de auth (cascada: profile + contactos como cliente)
+  const { error } = await db.auth.admin.deleteUser(user.id);
+  if (error) return { ok: false, error: "No pudimos eliminar la cuenta. Probá de nuevo." };
+
+  // 4. Recalcular rating de los pros que había reseñado (si no fueron borrados)
+  for (const pid of affected) {
+    if (myProIds.includes(pid)) continue;
+    try {
+      const { data: rows } = await db
+        .from("reviews")
+        .select("rating")
+        .eq("professional_id", pid);
+      const list = rows ?? [];
+      const count = list.length;
+      const avg = count ? list.reduce((s, r) => s + Number(r.rating), 0) / count : 0;
+      await db
+        .from("professionals")
+        .update({ rating: Math.round(avg * 10) / 10, review_count: count })
+        .eq("id", pid);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/buscar");
+  return { ok: true };
+}

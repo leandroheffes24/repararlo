@@ -7,6 +7,7 @@ import { getProfessionalRowByProfileId, getProContacts } from "@/lib/data/reposi
 import { ProfileEditor, type ProfileEditorInitial } from "@/components/ProfileEditor";
 import { ProContacts } from "@/components/ProContacts";
 import { AvatarUploader } from "@/components/AvatarUploader";
+import { DeleteAccount } from "@/components/DeleteAccount";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export const metadata: Metadata = { title: "Mi panel" };
@@ -127,6 +128,10 @@ export default async function PanelPage({
             </div>
           </div>
         )}
+      </div>
+
+      <div className="mt-8">
+        <DeleteAccount />
       </div>
     </div>
   );

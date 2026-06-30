@@ -22,7 +22,8 @@
       "PowerShell(node --env-file=.env.local _avtest.mjs)",
       "PowerShell(node --env-file=.env.local _revtest.mjs)",
       "PowerShell(node --env-file=.env.local _gatetest.mjs)",
-      "PowerShell(node --env-file=.env.local _gateverify.mjs)"
+      "PowerShell(node --env-file=.env.local _gateverify.mjs)",
+      "PowerShell(node --env-file=.env.local _deltest.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo",
