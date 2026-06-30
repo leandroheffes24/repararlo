@@ -15,7 +15,7 @@ export function ProfessionalCard({ pro }: { pro: Professional }) {
     >
       <div className="flex items-start gap-4">
         <div className="relative">
-          <Avatar name={pro.name} hue={pro.avatarHue} size="md" />
+          <Avatar name={pro.name} hue={pro.avatarHue} size="md" src={pro.avatarUrl} />
           {pro.available && (
             <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-emerald-500" />
           )}

@@ -16,15 +16,20 @@ const navLinks = [
 export function Header() {
   const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabaseBrowserConfigured) return;
     const supabase = createSupabaseBrowser();
-    supabase.auth.getUser().then(({ data }) => setLoggedIn(Boolean(data.user)));
+    supabase.auth.getUser().then(({ data }) => {
+      setLoggedIn(Boolean(data.user));
+      setAvatarUrl((data.user?.user_metadata?.avatar_url as string) ?? null);
+    });
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setLoggedIn(Boolean(session?.user));
+      setAvatarUrl((session?.user?.user_metadata?.avatar_url as string) ?? null);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -51,9 +56,20 @@ export function Header() {
             <>
               <Link
                 href="/panel"
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 py-1.5 pl-1.5 pr-3.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
               >
-                <LayoutDashboard className="h-4 w-4" />
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt="Mi perfil"
+                    className="h-6 w-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100">
+                    <LayoutDashboard className="h-3.5 w-3.5" />
+                  </span>
+                )}
                 Mi panel
               </Link>
               <SignOutButton className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900" />

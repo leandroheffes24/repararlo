@@ -7,6 +7,7 @@ import { categories } from "@/lib/data/categories";
 import { provinces, provinceByName } from "@/lib/data/provinces";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 import { ServiceAreasInput } from "./ServiceAreasInput";
+import { WorkPhotosUploader } from "./WorkPhotosUploader";
 import { saveProfileAction, type ProfileInput } from "@/app/panel/actions";
 
 export type ProfileEditorInitial = {
@@ -22,11 +23,13 @@ export type ProfileEditorInitial = {
   phone: string;
   available: boolean;
   categorySlugs: string[];
+  photos: string[];
   slug?: string;
 };
 
 export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
   const [selected, setSelected] = useState<string[]>(initial.categorySlugs);
+  const [photos, setPhotos] = useState<string[]>(initial.photos);
   const [available, setAvailable] = useState(initial.available);
   const [priceUnit, setPriceUnit] = useState<ProfileInput["priceUnit"]>(initial.priceUnit);
   const [province, setProvince] = useState(initial.province);
@@ -65,6 +68,7 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
       phone: String(form.get("phone") ?? ""),
       available,
       categorySlugs: selected,
+      photos,
     };
 
     const result = await saveProfileAction(input);
@@ -199,6 +203,11 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
             </Field>
           </div>
         </div>
+      </Card>
+
+      {/* Fotos de trabajos */}
+      <Card title="Fotos de tus trabajos">
+        <WorkPhotosUploader value={photos} onChange={setPhotos} />
       </Card>
 
       {error && (

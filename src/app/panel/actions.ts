@@ -17,6 +17,7 @@ export type ProfileInput = {
   phone: string;
   available: boolean;
   categorySlugs: string[];
+  photos: string[];
 };
 
 export type SaveResult = { ok: boolean; error?: string; slug?: string };
@@ -66,6 +67,7 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
     price_unit: input.priceUnit,
     phone: input.phone.trim() || null,
     available: input.available,
+    photos: (input.photos ?? []).filter(Boolean).slice(0, 12),
   };
 
   // 3. ¿Ya existe el profesional de este usuario?
@@ -78,18 +80,34 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
   let proId: string;
   let slug: string;
 
+  // Si la columna "photos" todavía no existe (no corrieron 03-fotos.sql),
+  // reintentamos sin fotos para no romper el guardado del resto del perfil.
+  const isMissingPhotos = (msg?: string) => !!msg && /photos/i.test(msg);
+  const { photos: _omit, ...fieldsNoPhotos } = fields;
+  void _omit;
+
   if (existing) {
     proId = existing.id;
     slug = existing.slug;
-    const { error } = await db.from("professionals").update(fields).eq("id", proId);
+    let { error } = await db.from("professionals").update(fields).eq("id", proId);
+    if (isMissingPhotos(error?.message)) {
+      ({ error } = await db.from("professionals").update(fieldsNoPhotos).eq("id", proId));
+    }
     if (error) return { ok: false, error: "No pudimos guardar los cambios." };
   } else {
     slug = `${slugify(name) || "profesional"}-${user.id.slice(0, 6)}`;
-    const { data: inserted, error } = await db
+    let { data: inserted, error } = await db
       .from("professionals")
       .insert({ ...fields, profile_id: user.id, slug })
       .select("id")
       .single();
+    if (isMissingPhotos(error?.message)) {
+      ({ data: inserted, error } = await db
+        .from("professionals")
+        .insert({ ...fieldsNoPhotos, profile_id: user.id, slug })
+        .select("id")
+        .single());
+    }
     if (error || !inserted) return { ok: false, error: "No pudimos crear tu perfil." };
     proId = inserted.id;
   }

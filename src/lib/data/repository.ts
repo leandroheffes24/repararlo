@@ -31,6 +31,8 @@ type ProRow = {
   rating: number | null;
   review_count: number | null;
   jobs_done: number | null;
+  photos: string[] | null;
+  avatar_url: string | null;
   professional_categories?: { category_slug: string }[] | null;
 };
 
@@ -60,9 +62,11 @@ function mapRow(row: ProRow, reviews: Review[] = []): Professional {
     about: row.about ?? "",
     skills: row.skills ?? [],
     avatarHue: hueFrom(row.id),
+    avatarUrl: row.avatar_url ?? undefined,
     phone: row.phone ?? "",
     respondsIn: "Suele responder pronto",
     available: row.available ?? true,
+    photos: row.photos ?? [],
     reviews,
   };
 }

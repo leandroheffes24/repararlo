@@ -37,10 +37,14 @@ export type Professional = {
   priceUnit?: "hora" | "visita" | "presupuesto";
   about: string;
   skills: string[];
-  /** Color de avatar (hsl hue) */
+  /** Color de avatar (hsl hue) usado cuando no hay foto */
   avatarHue: number;
+  /** Foto de perfil (URL pública); si no hay, se usan las iniciales */
+  avatarUrl?: string;
   phone: string; // formato AR
   respondsIn: string; // "Suele responder en 1 h"
   available: boolean;
+  /** Fotos de trabajos realizados (URLs públicas de Supabase Storage) */
+  photos?: string[];
   reviews: Review[];
 };

@@ -5,6 +5,7 @@ import { Search, Wrench, ArrowRight } from "lucide-react";
 import { getCurrentUser, getServiceSupabase } from "@/lib/supabase/server";
 import { getProfessionalRowByProfileId } from "@/lib/data/repository";
 import { ProfileEditor, type ProfileEditorInitial } from "@/components/ProfileEditor";
+import { AvatarUploader } from "@/components/AvatarUploader";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export const metadata: Metadata = { title: "Mi panel" };
@@ -40,6 +41,8 @@ export default async function PanelPage({
   const showEditor = role === "professional" || Boolean(row) || modo === "profesional";
 
   const greetingName = (fullName || user.email || "").split(" ")[0];
+  const avatarUrl = (user.user_metadata?.avatar_url as string) ?? undefined;
+  const avatarHue = [...user.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -57,7 +60,16 @@ export default async function PanelPage({
         <SignOutButton />
       </div>
 
-      <div className="mt-8">
+      {/* Foto de perfil (para todos los usuarios) */}
+      <div className="mt-8 rounded-2xl border border-slate-100 bg-white p-6 shadow-[var(--shadow-card)]">
+        <AvatarUploader
+          name={fullName || user.email || "Usuario"}
+          hue={avatarHue}
+          initialUrl={avatarUrl}
+        />
+      </div>
+
+      <div className="mt-6">
         {showEditor ? (
           <ProfileEditor initial={buildInitial(row, fullName)} />
         ) : (
@@ -122,6 +134,7 @@ function buildInitial(
       phone: "",
       available: true,
       categorySlugs: [],
+      photos: [],
       slug: undefined,
     };
   }
@@ -138,6 +151,7 @@ function buildInitial(
     phone: row.phone ?? "",
     available: row.available ?? true,
     categorySlugs: (row.professional_categories ?? []).map((c) => c.category_slug),
+    photos: row.photos ?? [],
     slug: row.slug,
   };
 }

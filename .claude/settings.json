@@ -15,7 +15,11 @@
       "Bash(rm -f _diag.mjs _test_write.mjs _test_auth.mjs _test_flow.mjs)",
       "Bash(ls _*.mjs)",
       "PowerShell(npm run dev)",
-      "PowerShell(node --env-file=.env.local _chk.mjs)"
+      "PowerShell(node --env-file=.env.local _chk.mjs)",
+      "PowerShell(node --env-file=.env.local _bucket.mjs)",
+      "PowerShell(node --env-file=.env.local _stortest.mjs)",
+      "PowerShell(node --env-file=.env.local _bucket2.mjs)",
+      "PowerShell(node --env-file=.env.local _avtest.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo"

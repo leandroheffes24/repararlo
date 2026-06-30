@@ -57,7 +57,7 @@ export default async function ProfessionalPage({
           <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="relative">
-                <Avatar name={pro.name} hue={pro.avatarHue} size="xl" />
+                <Avatar name={pro.name} hue={pro.avatarHue} size="xl" src={pro.avatarUrl} />
                 {pro.available && (
                   <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-white bg-emerald-500" />
                 )}
@@ -91,6 +91,31 @@ export default async function ProfessionalPage({
           <Section title="Sobre el profesional">
             <p className="leading-relaxed text-slate-600">{pro.about}</p>
           </Section>
+
+          {/* Trabajos realizados */}
+          {pro.photos && pro.photos.length > 0 && (
+            <Section title="Trabajos realizados">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {pro.photos.map((url, i) => (
+                  <a
+                    key={url}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt={`Trabajo ${i + 1}`}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </a>
+                ))}
+              </div>
+            </Section>
+          )}
 
           {/* Especialidades */}
           <Section title="Especialidades">

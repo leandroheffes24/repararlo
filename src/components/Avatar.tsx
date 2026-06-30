@@ -11,11 +11,24 @@ export function Avatar({
   name,
   hue,
   size = "md",
+  src,
 }: {
   name: string;
   hue: number;
   size?: keyof typeof sizes;
+  src?: string;
 }) {
+  if (src) {
+    return (
+      <span
+        className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 ${sizes[size]}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={name} className="h-full w-full object-cover" />
+      </span>
+    );
+  }
+
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center rounded-full font-display font-bold text-white ${sizes[size]}`}

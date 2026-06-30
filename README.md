@@ -95,6 +95,15 @@ y **aparece automáticamente en el directorio**.
 > `supabase/02-auth-policies.sql` es **opcional** (agrega políticas de seguridad extra),
 > no es necesario para que el registro funcione.
 
+### 📸 Fotos de trabajos y foto de perfil
+
+- **Fotos de trabajos:** ejecutá una vez `supabase/03-fotos.sql` (agrega la columna
+  `photos`). Bucket `trabajos` ya creado.
+- **Foto de perfil (avatar):** ejecutá `supabase/04-avatar.sql` (agrega `avatar_url`
+  al profesional). Bucket `avatares` ya creado. La foto de cuenta de cualquier usuario
+  funciona sin SQL (se guarda en sus datos); el SQL es para que el avatar del profesional
+  aparezca también en el directorio. Hasta correrlo, todo se guarda igual sin romperse.
+
 ### ✉️ Importante: confirmación de email
 
 Por defecto, Supabase pide **confirmar el email** al registrarse. Para testear más rápido
@@ -119,7 +128,7 @@ La app contempla las dos opciones (si está activado, muestra un aviso de "revis
 - [x] Registro e inicio de sesión real (Supabase Auth) para clientes y profesionales.
 - [x] Panel del profesional para editar su perfil.
 - [x] Directorio que lee profesionales reales desde Supabase (con respaldo a ejemplos).
-- [ ] Subir fotos de trabajos al perfil (Supabase Storage).
+- [x] Subir fotos de trabajos al perfil (Supabase Storage).
 - [ ] Sistema de reseñas verificadas (solo quien contrató puede calificar).
 - [ ] Notificaciones por WhatsApp/email cuando llega un contacto.
 - [ ] Geolocalización y búsqueda por mapa.
