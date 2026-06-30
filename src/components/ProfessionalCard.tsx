@@ -29,7 +29,13 @@ export function ProfessionalCard({ pro }: { pro: Professional }) {
           </div>
           <p className="truncate text-sm text-slate-500">{pro.headline}</p>
           <div className="mt-1.5">
-            <RatingStars rating={pro.rating} showValue reviewCount={pro.reviewCount} />
+            {pro.reviewCount > 0 ? (
+              <RatingStars rating={pro.rating} showValue reviewCount={pro.reviewCount} />
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                Nuevo
+              </span>
+            )}
           </div>
         </div>
       </div>

@@ -19,6 +19,8 @@ export type Review = {
 
 export type Professional = {
   id: string;
+  /** profile_id del dueño (solo profesionales reales de la base) */
+  ownerId?: string;
   slug: string;
   name: string;
   headline: string; // "Plomero matriculado" etc.

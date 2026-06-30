@@ -129,3 +129,43 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
 
   return { ok: true, slug };
 }
+
+/** El profesional confirma que trabajó con un cliente (paso 2 de la confirmación mutua). */
+export async function confirmHiringProAction(
+  contactId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const auth = await createSupabaseServer();
+  if (!auth) return { ok: false, error: "Autenticación no configurada." };
+  const {
+    data: { user },
+  } = await auth.auth.getUser();
+  if (!user) return { ok: false, error: "Tenés que iniciar sesión." };
+
+  const db = getServiceSupabase();
+  if (!db) return { ok: false, error: "Base de datos no configurada." };
+
+  // Traer el contacto y verificar que el profesional sea el dueño
+  const { data: contact } = await db
+    .from("contacts")
+    .select("id, professionals(profile_id, slug)")
+    .eq("id", contactId)
+    .maybeSingle();
+  if (!contact) return { ok: false, error: "No encontramos el contacto." };
+
+  const proRel = Array.isArray(contact.professionals)
+    ? contact.professionals[0]
+    : contact.professionals;
+  if (!proRel || proRel.profile_id !== user.id) {
+    return { ok: false, error: "No autorizado." };
+  }
+
+  const { error } = await db
+    .from("contacts")
+    .update({ pro_confirmed: true })
+    .eq("id", contactId);
+  if (error) return { ok: false, error: "No pudimos confirmar." };
+
+  revalidatePath("/panel");
+  if (proRel.slug) revalidatePath(`/profesionales/${proRel.slug}`);
+  return { ok: true };
+}

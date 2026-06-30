@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Phone, MessageCircle, Shield, Eye } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export function ContactCard({
+  professionalId,
   name,
   phone,
   priceFrom,
@@ -12,6 +14,7 @@ export function ContactCard({
   respondsIn,
   available,
 }: {
+  professionalId: string;
   name: string;
   phone: string;
   priceFrom?: number;
@@ -19,8 +22,24 @@ export function ContactCard({
   respondsIn: string;
   available: boolean;
 }) {
+  const router = useRouter();
   const [revealed, setRevealed] = useState(false);
   const digits = phone.replace(/[^0-9]/g, "");
+
+  function reveal() {
+    setRevealed(true);
+    // Registramos el contacto (si está logueado). Al confirmarse, refrescamos
+    // para que se habilite el formulario de reseña sin recargar la página.
+    fetch("/api/contacto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ professionalId }),
+    })
+      .then((res) => {
+        if (res.ok) router.refresh();
+      })
+      .catch(() => {});
+  }
   const waMessage = encodeURIComponent(
     `¡Hola ${name.split(" ")[0]}! Te contacto desde Repararlo. Necesito un presupuesto.`
   );
@@ -47,7 +66,7 @@ export function ContactCard({
 
       {!revealed ? (
         <button
-          onClick={() => setRevealed(true)}
+          onClick={reveal}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-700"
         >
           <Eye className="h-5 w-5" />

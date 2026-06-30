@@ -14,6 +14,7 @@ import { getServiceSupabase } from "@/lib/supabase/server";
 
 type ProRow = {
   id: string;
+  profile_id: string | null;
   slug: string;
   name: string;
   headline: string | null;
@@ -45,6 +46,7 @@ function hueFrom(seed: string): number {
 function mapRow(row: ProRow, reviews: Review[] = []): Professional {
   return {
     id: row.id,
+    ownerId: row.profile_id ?? undefined,
     slug: row.slug,
     name: row.name,
     headline: row.headline ?? "",
@@ -147,6 +149,96 @@ export async function getProfessionalRowByProfileId(
       .eq("profile_id", profileId)
       .maybeSingle();
     return (data as ProRow) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * ¿Puede este usuario reseñar a este profesional?
+ * Regla (confirmación mutua): el cliente Y el profesional confirmaron la
+ * contratación en la tabla `contacts`.
+ * Si la tabla/columnas todavía no existen (no corrieron 05-contactos.sql),
+ * el filtro queda desactivado (fail-open) para no romper las reseñas.
+ *
+ * Estados:
+ * - "open": filtro desactivado (sin tabla) → puede reseñar.
+ * - "need-client-confirm": falta que el cliente confirme que lo contrató.
+ * - "waiting-pro": el cliente confirmó, falta el profesional.
+ * - "ok": ambos confirmaron → puede reseñar.
+ */
+export type ReviewEligibility = {
+  canReview: boolean;
+  state: "open" | "need-client-confirm" | "waiting-pro" | "ok";
+};
+
+export async function getReviewEligibility(
+  professionalId: string,
+  userId: string
+): Promise<ReviewEligibility> {
+  const db = getServiceSupabase();
+  if (!db) return { canReview: true, state: "open" };
+  const { data, error } = await db
+    .from("contacts")
+    .select("id, client_confirmed, pro_confirmed")
+    .eq("professional_id", professionalId)
+    .eq("client_id", userId)
+    .maybeSingle();
+  if (error) return { canReview: true, state: "open" }; // tabla/columnas ausentes → gate off
+  if (!data || !data.client_confirmed) return { canReview: false, state: "need-client-confirm" };
+  if (!data.pro_confirmed) return { canReview: false, state: "waiting-pro" };
+  return { canReview: true, state: "ok" };
+}
+
+export type ProContact = {
+  id: string;
+  clientName: string;
+  createdAt: string;
+  clientConfirmed: boolean;
+  proConfirmed: boolean;
+};
+
+/** Lista de clientes que contactaron a un profesional (para que confirme trabajos). */
+export async function getProContacts(professionalId: string): Promise<ProContact[]> {
+  const db = getServiceSupabase();
+  if (!db) return [];
+  try {
+    const { data, error } = await db
+      .from("contacts")
+      .select("id, created_at, client_confirmed, pro_confirmed, profiles(full_name)")
+      .eq("professional_id", professionalId)
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return data.map((r) => {
+      const prof = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+      return {
+        id: r.id as string,
+        clientName: (prof?.full_name as string) || "Cliente",
+        createdAt: r.created_at as string,
+        clientConfirmed: Boolean(r.client_confirmed),
+        proConfirmed: Boolean(r.pro_confirmed),
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/** Reseña que dejó un usuario a un profesional (para precargar/editar). */
+export async function getUserReview(
+  professionalId: string,
+  userId: string
+): Promise<{ id: string; rating: number; comment: string | null } | null> {
+  const db = getServiceSupabase();
+  if (!db) return null;
+  try {
+    const { data } = await db
+      .from("reviews")
+      .select("id, rating, comment")
+      .eq("professional_id", professionalId)
+      .eq("author_id", userId)
+      .maybeSingle();
+    return data ?? null;
   } catch {
     return null;
   }

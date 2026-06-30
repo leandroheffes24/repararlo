@@ -2,20 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin, Briefcase, CalendarClock, Wrench } from "lucide-react";
-import { professionals } from "@/lib/data/professionals";
-import { getProfessionalBySlug } from "@/lib/data/repository";
+import {
+  getProfessionalBySlug,
+  getUserReview,
+  getReviewEligibility,
+} from "@/lib/data/repository";
 import { categoryBySlug } from "@/lib/data/categories";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { Avatar } from "@/components/Avatar";
 import { RatingStars } from "@/components/RatingStars";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ContactCard } from "@/components/ContactCard";
+import { ReviewForm } from "@/components/ReviewForm";
+import { ClientConfirmHiring } from "@/components/ClientConfirmHiring";
 import { formatDate } from "@/lib/utils";
 
-export const revalidate = 30;
-
-export function generateStaticParams() {
-  return professionals.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -39,6 +41,19 @@ export default async function ProfessionalPage({
   const { slug } = await params;
   const pro = await getProfessionalBySlug(slug);
   if (!pro) notFound();
+
+  // Reseñas: quién puede reseñar
+  const user = await getCurrentUser();
+  const isDbPro = /^[0-9a-f]{8}-[0-9a-f]{4}/i.test(pro.id);
+  const isOwner = Boolean(user && pro.ownerId && user.id === pro.ownerId);
+  const existingReview =
+    user && isDbPro && !isOwner ? await getUserReview(pro.id, user.id) : null;
+  const eligibility =
+    user && isDbPro && !isOwner && !existingReview
+      ? await getReviewEligibility(pro.id, user.id)
+      : null;
+  // Puede ver el formulario si ya tiene reseña (para editar) o si contactó.
+  const canReview = Boolean(existingReview) || Boolean(eligibility?.canReview);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -71,7 +86,13 @@ export default async function ProfessionalPage({
                 </div>
                 <p className="mt-1 text-slate-600">{pro.headline}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <RatingStars rating={pro.rating} showValue reviewCount={pro.reviewCount} />
+                  {pro.reviewCount > 0 ? (
+                    <RatingStars rating={pro.rating} showValue reviewCount={pro.reviewCount} />
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                      Nuevo en Repararlo
+                    </span>
+                  )}
                   <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
                     <MapPin className="h-4 w-4 text-slate-400" />
                     {pro.city}, {pro.province}
@@ -167,18 +188,67 @@ export default async function ProfessionalPage({
           </Section>
 
           {/* Reseñas */}
-          <Section title={`Reseñas (${pro.reviewCount})`}>
-            <div className="mb-5 flex items-center gap-4 rounded-xl bg-slate-50 p-4">
-              <span className="font-display text-4xl font-extrabold text-slate-900">
-                {pro.rating.toFixed(1)}
-              </span>
-              <div>
-                <RatingStars rating={pro.rating} size={18} />
-                <p className="mt-1 text-sm text-slate-500">
-                  Basado en {pro.reviewCount} reseñas verificadas
-                </p>
+          <Section title={`Reseñas${pro.reviewCount > 0 ? ` (${pro.reviewCount})` : ""}`}>
+            {pro.reviewCount > 0 ? (
+              <div className="mb-5 flex items-center gap-4 rounded-xl bg-slate-50 p-4">
+                <span className="font-display text-4xl font-extrabold text-slate-900">
+                  {pro.rating.toFixed(1)}
+                </span>
+                <div>
+                  <RatingStars rating={pro.rating} size={18} />
+                  <p className="mt-1 text-sm text-slate-500">
+                    Basado en {pro.reviewCount} reseña{pro.reviewCount > 1 ? "s" : ""}
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="mb-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+                Todavía no tiene reseñas. {isDbPro && !isOwner ? "¡Sé el primero en calificar!" : ""}
+              </p>
+            )}
+
+            {/* Dejar reseña */}
+            {isOwner ? (
+              <p className="mb-5 rounded-xl border border-slate-100 bg-white p-4 text-sm text-slate-500">
+                Este es tu perfil. Las reseñas las dejan tus clientes.
+              </p>
+            ) : !isDbPro ? null : !user ? (
+              <Link
+                href={`/ingresar?next=/profesionales/${pro.slug}`}
+                className="mb-6 block rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm font-medium text-brand-600 hover:bg-slate-50"
+              >
+                Iniciá sesión para dejar una reseña →
+              </Link>
+            ) : canReview ? (
+              <div className="mb-6">
+                <ReviewForm
+                  professionalId={pro.id}
+                  professionalName={pro.name}
+                  existing={
+                    existingReview
+                      ? { rating: existingReview.rating, comment: existingReview.comment ?? "" }
+                      : null
+                  }
+                />
+              </div>
+            ) : eligibility?.state === "waiting-pro" ? (
+              <p className="mb-6 rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
+                Marcaste que contrataste a {pro.name.split(" ")[0]}. Cuando el profesional
+                lo confirme, vas a poder dejar tu reseña.
+              </p>
+            ) : (
+              <div className="mb-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm text-slate-600">
+                  ¿Contrataste a <strong>{pro.name.split(" ")[0]}</strong>? Confirmalo para
+                  poder dejar una reseña. El profesional también lo confirma, así nos
+                  aseguramos de que las reseñas sean de clientes reales.
+                </p>
+                <div className="mt-3">
+                  <ClientConfirmHiring professionalId={pro.id} />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
               {pro.reviews.map((review) => (
                 <div
@@ -210,6 +280,7 @@ export default async function ProfessionalPage({
         <aside className="mt-6 lg:mt-0">
           <div className="lg:sticky lg:top-24">
             <ContactCard
+              professionalId={pro.id}
               name={pro.name}
               phone={pro.phone}
               priceFrom={pro.priceFrom}

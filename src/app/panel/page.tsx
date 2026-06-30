@@ -3,8 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Search, Wrench, ArrowRight } from "lucide-react";
 import { getCurrentUser, getServiceSupabase } from "@/lib/supabase/server";
-import { getProfessionalRowByProfileId } from "@/lib/data/repository";
+import { getProfessionalRowByProfileId, getProContacts } from "@/lib/data/repository";
 import { ProfileEditor, type ProfileEditorInitial } from "@/components/ProfileEditor";
+import { ProContacts } from "@/components/ProContacts";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 
@@ -38,6 +39,7 @@ export default async function PanelPage({
   }
 
   const row = await getProfessionalRowByProfileId(user.id);
+  const contacts = row ? await getProContacts(row.id) : [];
   const showEditor = role === "professional" || Boolean(row) || modo === "profesional";
 
   const greetingName = (fullName || user.email || "").split(" ")[0];
@@ -71,7 +73,21 @@ export default async function PanelPage({
 
       <div className="mt-6">
         {showEditor ? (
-          <ProfileEditor initial={buildInitial(row, fullName)} />
+          <div className="space-y-6">
+            <ProfileEditor initial={buildInitial(row, fullName)} />
+            {row && (
+              <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[var(--shadow-card)]">
+                <h2 className="font-display text-lg font-bold text-slate-900">
+                  Clientes que te contactaron
+                </h2>
+                <p className="mb-3 mt-0.5 text-sm text-slate-500">
+                  Confirmá los trabajos que hiciste para que esos clientes puedan dejarte
+                  una reseña.
+                </p>
+                <ProContacts contacts={contacts} />
+              </div>
+            )}
+          </div>
         ) : (
           <div className="space-y-5">
             <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[var(--shadow-card)]">
