@@ -15,6 +15,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ContactCard } from "@/components/ContactCard";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ClientConfirmHiring } from "@/components/ClientConfirmHiring";
+import { ReportProfile } from "@/components/ReportProfile";
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
@@ -351,6 +352,14 @@ export default async function ProfessionalPage({
               respondsIn={pro.respondsIn}
               available={pro.available}
             />
+            <div className="mt-4 text-center">
+              <ReportProfile
+                professionalId={pro.id}
+                professionalName={pro.name}
+                isLoggedIn={Boolean(user)}
+                slug={pro.slug}
+              />
+            </div>
           </div>
         </aside>
       </div>
