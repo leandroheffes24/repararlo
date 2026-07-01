@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getServiceSupabase, createSupabaseServer } from "@/lib/supabase/server";
 import { recomputeJobsDone } from "@/lib/data/repository";
+import { createNotification } from "@/lib/data/notifications";
 import { slugify } from "@/lib/utils";
 
 export type ProfileInput = {
@@ -153,14 +154,14 @@ export async function confirmHiringProAction(
   // Traer el contacto y verificar que el profesional sea el dueño
   const { data: contact } = await db
     .from("contacts")
-    .select("id, professional_id, professionals(profile_id, slug)")
+    .select("id, client_id, professional_id, professionals(profile_id, slug, name)")
     .eq("id", contactId)
     .maybeSingle();
   if (!contact) return { ok: false, error: "No encontramos el contacto." };
 
-  const proRel = Array.isArray(contact.professionals)
-    ? contact.professionals[0]
-    : contact.professionals;
+  const proRel = (
+    Array.isArray(contact.professionals) ? contact.professionals[0] : contact.professionals
+  ) as { profile_id?: string; slug?: string; name?: string } | null;
   if (!proRel || proRel.profile_id !== user.id) {
     return { ok: false, error: "No autorizado." };
   }
@@ -178,6 +179,17 @@ export async function confirmHiringProAction(
 
   // Recalcular "trabajos realizados" (confirmación mutua)
   await recomputeJobsDone(contact.professional_id as string);
+
+  // Avisar al cliente que el profesional confirmó (ya puede reseñar)
+  if (yes && contact.client_id) {
+    const proName = proRel.name || "El profesional";
+    await createNotification(contact.client_id as string, {
+      type: "pro_confirmed",
+      title: `${proName} confirmó que trabajaron juntos`,
+      body: "Ya podés dejar tu reseña desde su perfil.",
+      link: proRel.slug ? `/profesionales/${proRel.slug}` : "/",
+    });
+  }
 
   revalidatePath("/panel");
   revalidatePath("/buscar");

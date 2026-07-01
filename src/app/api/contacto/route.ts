@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer, getServiceSupabase } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/data/notifications";
 
 /**
  * Registra que un usuario logueado contactó a un profesional desde la plataforma.
@@ -35,13 +36,40 @@ export async function POST(request: Request) {
     await db.from("profiles").insert({ id: user.id, full_name: name, role: "client" });
   }
 
-  // Registrar contacto (idempotente). Si la tabla no existe todavía, se ignora.
-  await db
+  // Registrar contacto solo si es la primera vez (para notificar una sola vez).
+  const { data: existing } = await db
     .from("contacts")
-    .upsert(
-      { professional_id: professionalId, client_id: user.id },
-      { onConflict: "professional_id,client_id", ignoreDuplicates: true }
-    );
+    .select("id")
+    .eq("professional_id", professionalId)
+    .eq("client_id", user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    const { error: insErr } = await db
+      .from("contacts")
+      .insert({ professional_id: professionalId, client_id: user.id });
+
+    if (!insErr) {
+      // Avisar al profesional que lo contactaron (solo la primera vez)
+      const { data: pro } = await db
+        .from("professionals")
+        .select("profile_id")
+        .eq("id", professionalId)
+        .maybeSingle();
+      if (pro?.profile_id) {
+        const clientName =
+          (user.user_metadata?.full_name as string) ||
+          user.email?.split("@")[0] ||
+          "Alguien";
+        await createNotification(pro.profile_id, {
+          type: "contact",
+          title: `${clientName} te contactó`,
+          body: "Entró en contacto con vos desde Repararlo.",
+          link: "/panel",
+        });
+      }
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Menu, X, Search, LayoutDashboard } from "lucide-react";
 import { Logo } from "./Logo";
 import { SignOutButton } from "./auth/SignOutButton";
+import { NotificationsBell } from "./NotificationsBell";
 import { createSupabaseBrowser, supabaseBrowserConfigured } from "@/lib/supabase/client";
 
 const navLinks = [
@@ -51,7 +52,9 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="flex items-center gap-1">
+          {loggedIn && <NotificationsBell />}
+          <div className="hidden items-center gap-2 md:flex">
           {loggedIn ? (
             <>
               <Link
@@ -100,6 +103,7 @@ export function Header() {
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
+        </div>
       </div>
 
       {open && (

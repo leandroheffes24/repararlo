@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServer, getServiceSupabase } from "@/lib/supabase/server";
 import { getReviewEligibility, recomputeJobsDone } from "@/lib/data/repository";
+import { createNotification } from "@/lib/data/notifications";
 
 export type ReviewInput = {
   professionalId: string;
@@ -92,6 +93,14 @@ export async function submitReviewAction(input: ReviewInput): Promise<ReviewResu
       comment,
     });
     if (error) return { ok: false, error: "No pudimos guardar tu reseña." };
+
+    // Avisar al profesional que recibió una reseña
+    await createNotification(pro.profile_id, {
+      type: "review",
+      title: `${authorName} te dejó una reseña`,
+      body: `${rating}★ · ${comment.slice(0, 60)}`,
+      link: `/profesionales/${pro.slug}`,
+    });
   }
 
   // Recalcular promedio y cantidad
@@ -159,9 +168,22 @@ export async function confirmHiringClientAction(
 
   const { data: pro } = await db
     .from("professionals")
-    .select("slug")
+    .select("slug, profile_id")
     .eq("id", professionalId)
     .maybeSingle();
+
+  // Avisar al profesional que el cliente marcó que lo contrató
+  if (yes && pro?.profile_id) {
+    const clientName =
+      (user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "Un cliente";
+    await createNotification(pro.profile_id, {
+      type: "client_confirmed",
+      title: `${clientName} marcó que lo contrataste`,
+      body: "Confirmá el trabajo en tu panel para habilitar su reseña.",
+      link: "/panel",
+    });
+  }
+
   if (pro?.slug) revalidatePath(`/profesionales/${pro.slug}`);
   revalidatePath("/buscar");
   revalidatePath("/");
