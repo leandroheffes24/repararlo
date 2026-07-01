@@ -169,7 +169,26 @@ export async function getProfessionalRowByProfileId(
  */
 export type ReviewEligibility = {
   canReview: boolean;
-  state: "open" | "need-client-confirm" | "waiting-pro" | "ok";
+  state:
+    | "open"
+    | "need-client-confirm"
+    | "waiting-pro"
+    | "client-declined"
+    | "pro-declined"
+    | "ok";
+  clientConfirmed: boolean;
+  clientDeclined: boolean;
+  proConfirmed: boolean;
+  proDeclined: boolean;
+};
+
+const OPEN_ELIGIBILITY: ReviewEligibility = {
+  canReview: true,
+  state: "open",
+  clientConfirmed: false,
+  clientDeclined: false,
+  proConfirmed: false,
+  proDeclined: false,
 };
 
 export async function getReviewEligibility(
@@ -177,17 +196,58 @@ export async function getReviewEligibility(
   userId: string
 ): Promise<ReviewEligibility> {
   const db = getServiceSupabase();
-  if (!db) return { canReview: true, state: "open" };
-  const { data, error } = await db
+  if (!db) return OPEN_ELIGIBILITY;
+
+  let row: {
+    client_confirmed?: boolean;
+    pro_confirmed?: boolean;
+    client_declined?: boolean;
+    pro_declined?: boolean;
+  } | null = null;
+
+  const full = await db
     .from("contacts")
-    .select("id, client_confirmed, pro_confirmed")
+    .select("client_confirmed, pro_confirmed, client_declined, pro_declined")
     .eq("professional_id", professionalId)
     .eq("client_id", userId)
     .maybeSingle();
-  if (error) return { canReview: true, state: "open" }; // tabla/columnas ausentes → gate off
-  if (!data || !data.client_confirmed) return { canReview: false, state: "need-client-confirm" };
-  if (!data.pro_confirmed) return { canReview: false, state: "waiting-pro" };
-  return { canReview: true, state: "ok" };
+
+  if (full.error) {
+    // Puede faltar la tabla, o solo las columnas de rechazo: probar con las básicas.
+    const basic = await db
+      .from("contacts")
+      .select("client_confirmed, pro_confirmed")
+      .eq("professional_id", professionalId)
+      .eq("client_id", userId)
+      .maybeSingle();
+    if (basic.error) return OPEN_ELIGIBILITY; // tabla ausente → gate off
+    row = basic.data;
+  } else {
+    row = full.data;
+  }
+
+  if (!row) {
+    return {
+      canReview: false,
+      state: "need-client-confirm",
+      clientConfirmed: false,
+      clientDeclined: false,
+      proConfirmed: false,
+      proDeclined: false,
+    };
+  }
+
+  const cc = Boolean(row.client_confirmed);
+  const cd = Boolean(row.client_declined);
+  const pc = Boolean(row.pro_confirmed);
+  const pd = Boolean(row.pro_declined);
+  const base = { clientConfirmed: cc, clientDeclined: cd, proConfirmed: pc, proDeclined: pd };
+
+  if (cc && pc) return { canReview: true, state: "ok", ...base };
+  if (pd) return { canReview: false, state: "pro-declined", ...base };
+  if (cd) return { canReview: false, state: "client-declined", ...base };
+  if (!cc) return { canReview: false, state: "need-client-confirm", ...base };
+  return { canReview: false, state: "waiting-pro", ...base };
 }
 
 export type ProContact = {
@@ -195,33 +255,63 @@ export type ProContact = {
   clientName: string;
   createdAt: string;
   clientConfirmed: boolean;
+  clientDeclined: boolean;
   proConfirmed: boolean;
+  proDeclined: boolean;
+};
+
+type ContactRow = {
+  id: string;
+  created_at: string;
+  client_confirmed?: boolean;
+  pro_confirmed?: boolean;
+  client_declined?: boolean;
+  pro_declined?: boolean;
+  profiles?: { full_name?: string } | { full_name?: string }[] | null;
 };
 
 /** Lista de clientes que contactaron a un profesional (para que confirme trabajos). */
 export async function getProContacts(professionalId: string): Promise<ProContact[]> {
   const db = getServiceSupabase();
   if (!db) return [];
+  const cols =
+    "id, created_at, client_confirmed, pro_confirmed, client_declined, pro_declined, profiles(full_name)";
+  const colsBasic = "id, created_at, client_confirmed, pro_confirmed, profiles(full_name)";
+
+  let rows: ContactRow[] | null = null;
   try {
-    const { data, error } = await db
+    const full = await db
       .from("contacts")
-      .select("id, created_at, client_confirmed, pro_confirmed, profiles(full_name)")
+      .select(cols)
       .eq("professional_id", professionalId)
       .order("created_at", { ascending: false });
-    if (error || !data) return [];
-    return data.map((r) => {
-      const prof = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
-      return {
-        id: r.id as string,
-        clientName: (prof?.full_name as string) || "Cliente",
-        createdAt: r.created_at as string,
-        clientConfirmed: Boolean(r.client_confirmed),
-        proConfirmed: Boolean(r.pro_confirmed),
-      };
-    });
+    if (!full.error) {
+      rows = full.data as unknown as ContactRow[];
+    } else {
+      const basic = await db
+        .from("contacts")
+        .select(colsBasic)
+        .eq("professional_id", professionalId)
+        .order("created_at", { ascending: false });
+      if (basic.error) return [];
+      rows = basic.data as unknown as ContactRow[];
+    }
   } catch {
     return [];
   }
+
+  return (rows ?? []).map((r) => {
+    const prof = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+    return {
+      id: r.id,
+      clientName: prof?.full_name || "Cliente",
+      createdAt: r.created_at,
+      clientConfirmed: Boolean(r.client_confirmed),
+      clientDeclined: Boolean(r.client_declined),
+      proConfirmed: Boolean(r.pro_confirmed),
+      proDeclined: Boolean(r.pro_declined),
+    };
+  });
 }
 
 /** Reseña que dejó un usuario a un profesional (para precargar/editar). */

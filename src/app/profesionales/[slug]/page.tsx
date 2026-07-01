@@ -231,21 +231,20 @@ export default async function ProfessionalPage({
                   }
                 />
               </div>
-            ) : eligibility?.state === "waiting-pro" ? (
-              <p className="mb-6 rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
-                Marcaste que contrataste a {pro.name.split(" ")[0]}. Cuando el profesional
-                lo confirme, vas a poder dejar tu reseña.
+            ) : eligibility?.state === "pro-declined" ? (
+              <p className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                El profesional indicó que no trabajaron juntos, por eso no podés dejar una
+                reseña.
               </p>
             ) : (
-              <div className="mb-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm text-slate-600">
-                  ¿Contrataste a <strong>{pro.name.split(" ")[0]}</strong>? Confirmalo para
-                  poder dejar una reseña. El profesional también lo confirma, así nos
-                  aseguramos de que las reseñas sean de clientes reales.
-                </p>
-                <div className="mt-3">
-                  <ClientConfirmHiring professionalId={pro.id} />
-                </div>
+              <div className="mb-6">
+                <ClientConfirmHiring
+                  professionalId={pro.id}
+                  professionalName={pro.name}
+                  confirmed={Boolean(eligibility?.clientConfirmed)}
+                  declined={Boolean(eligibility?.clientDeclined)}
+                  waitingPro={eligibility?.state === "waiting-pro"}
+                />
               </div>
             )}
 

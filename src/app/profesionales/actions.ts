@@ -113,9 +113,10 @@ export async function submitReviewAction(input: ReviewInput): Promise<ReviewResu
   return { ok: true };
 }
 
-/** El cliente confirma que contrató al profesional (paso 1 de la confirmación mutua). */
+/** El cliente responde si contrató o no al profesional (paso 1 de la confirmación mutua). */
 export async function confirmHiringClientAction(
-  professionalId: string
+  professionalId: string,
+  decision: "yes" | "no"
 ): Promise<{ ok: boolean; error?: string }> {
   const auth = await createSupabaseServer();
   if (!auth) return { ok: false, error: "Autenticación no configurada." };
@@ -139,13 +140,19 @@ export async function confirmHiringClientAction(
     await db.from("profiles").insert({ id: user.id, full_name: name, role: "client" });
   }
 
-  const { error } = await db
-    .from("contacts")
-    .upsert(
-      { professional_id: professionalId, client_id: user.id, client_confirmed: true },
+  const yes = decision === "yes";
+  let { error } = await db.from("contacts").upsert(
+    { professional_id: professionalId, client_id: user.id, client_confirmed: yes, client_declined: !yes },
+    { onConflict: "professional_id,client_id" }
+  );
+  if (error) {
+    // Puede faltar la columna client_declined: reintentar sin ella
+    ({ error } = await db.from("contacts").upsert(
+      { professional_id: professionalId, client_id: user.id, client_confirmed: yes },
       { onConflict: "professional_id,client_id" }
-    );
-  if (error) return { ok: false, error: "No pudimos registrar tu confirmación." };
+    ));
+  }
+  if (error) return { ok: false, error: "No pudimos registrar tu respuesta." };
 
   const { data: pro } = await db
     .from("professionals")

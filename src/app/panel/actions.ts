@@ -130,9 +130,10 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
   return { ok: true, slug };
 }
 
-/** El profesional confirma que trabajó con un cliente (paso 2 de la confirmación mutua). */
+/** El profesional responde si trabajó o no con un cliente (paso 2 de la confirmación mutua). */
 export async function confirmHiringProAction(
-  contactId: string
+  contactId: string,
+  decision: "yes" | "no"
 ): Promise<{ ok: boolean; error?: string }> {
   const auth = await createSupabaseServer();
   if (!auth) return { ok: false, error: "Autenticación no configurada." };
@@ -159,11 +160,16 @@ export async function confirmHiringProAction(
     return { ok: false, error: "No autorizado." };
   }
 
-  const { error } = await db
+  const yes = decision === "yes";
+  let { error } = await db
     .from("contacts")
-    .update({ pro_confirmed: true })
+    .update({ pro_confirmed: yes, pro_declined: !yes })
     .eq("id", contactId);
-  if (error) return { ok: false, error: "No pudimos confirmar." };
+  if (error) {
+    // Puede faltar la columna pro_declined: reintentar sin ella
+    ({ error } = await db.from("contacts").update({ pro_confirmed: yes }).eq("id", contactId));
+  }
+  if (error) return { ok: false, error: "No pudimos guardar tu respuesta." };
 
   revalidatePath("/panel");
   if (proRel.slug) revalidatePath(`/profesionales/${proRel.slug}`);

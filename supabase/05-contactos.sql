@@ -17,6 +17,8 @@ create table if not exists public.contacts (
   client_id        uuid not null references public.profiles(id) on delete cascade,
   client_confirmed boolean not null default false,
   pro_confirmed    boolean not null default false,
+  client_declined  boolean not null default false,
+  pro_declined     boolean not null default false,
   created_at       timestamptz not null default now(),
   unique (professional_id, client_id)
 );
@@ -24,6 +26,8 @@ create table if not exists public.contacts (
 -- Por si la tabla ya existía sin estas columnas:
 alter table public.contacts add column if not exists client_confirmed boolean not null default false;
 alter table public.contacts add column if not exists pro_confirmed    boolean not null default false;
+alter table public.contacts add column if not exists client_declined  boolean not null default false;
+alter table public.contacts add column if not exists pro_declined     boolean not null default false;
 
 -- Solo el backend (service role) lee/escribe esta tabla.
 alter table public.contacts enable row level security;
