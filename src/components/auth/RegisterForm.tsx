@@ -11,9 +11,11 @@ type Role = "client" | "professional";
 export function RegisterForm({
   defaultRole = "client",
   lockRole = false,
+  next,
 }: {
   defaultRole?: Role;
   lockRole?: boolean;
+  next?: string;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<Role>(defaultRole);
@@ -64,8 +66,12 @@ export function RegisterForm({
     }
 
     router.refresh();
-    router.push(role === "professional" ? "/panel" : "/");
+    const dest = next && next.startsWith("/") ? next : role === "professional" ? "/panel" : "/";
+    router.push(dest);
   }
+
+  const loginHref =
+    next && next.startsWith("/") ? `/ingresar?next=${encodeURIComponent(next)}` : "/ingresar";
 
   if (status === "check-email") {
     return (
@@ -79,7 +85,7 @@ export function RegisterForm({
           iniciar sesión.
         </p>
         <Link
-          href="/ingresar"
+          href={loginHref}
           className="mt-6 inline-block rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
         >
           Ir a iniciar sesión
@@ -151,7 +157,7 @@ export function RegisterForm({
 
       <p className="mt-4 text-center text-sm text-slate-500">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/ingresar" className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link href={loginHref} className="font-semibold text-brand-600 hover:text-brand-700">
           Iniciá sesión
         </Link>
       </p>

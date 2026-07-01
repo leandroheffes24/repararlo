@@ -12,12 +12,14 @@ export const metadata: Metadata = {
 export default async function RegistrarsePage({
   searchParams,
 }: {
-  searchParams: Promise<{ rol?: string }>;
+  searchParams: Promise<{ rol?: string; next?: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (user) redirect("/panel");
+  const { rol, next } = await searchParams;
+  const safeNext = next && next.startsWith("/") ? next : undefined;
 
-  const { rol } = await searchParams;
+  const user = await getCurrentUser();
+  if (user) redirect(safeNext ?? "/panel");
+
   const defaultRole = rol === "profesional" ? "professional" : "client";
 
   return (
@@ -48,7 +50,7 @@ export default async function RegistrarsePage({
         </div>
 
         <div className="mx-auto w-full max-w-md">
-          <RegisterForm defaultRole={defaultRole} />
+          <RegisterForm defaultRole={defaultRole} next={safeNext} />
         </div>
       </div>
     </section>

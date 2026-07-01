@@ -85,7 +85,7 @@ export default async function PanelPage({
                   Confirmá los trabajos que hiciste para que esos clientes puedan dejarte
                   una reseña.
                 </p>
-                <ProContacts contacts={contacts} />
+                <ProContacts contacts={contacts} proSlug={row.slug} />
               </div>
             )}
           </div>

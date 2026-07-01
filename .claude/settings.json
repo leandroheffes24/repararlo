@@ -27,7 +27,9 @@
       "PowerShell(node --env-file=.env.local _declchk.mjs)",
       "PowerShell(node --env-file=.env.local _jobstest.mjs)",
       "PowerShell(node --env-file=.env.local _avdiag.mjs)",
-      "PowerShell(node --env-file=.env.local _avfix.mjs)"
+      "PowerShell(node --env-file=.env.local _avfix.mjs)",
+      "PowerShell(node --env-file=.env.local _verify.mjs)",
+      "WebSearch"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo",

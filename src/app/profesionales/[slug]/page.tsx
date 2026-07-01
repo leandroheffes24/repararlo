@@ -280,6 +280,8 @@ export default async function ProfessionalPage({
           <div className="lg:sticky lg:top-24">
             <ContactCard
               professionalId={pro.id}
+              slug={pro.slug}
+              isLoggedIn={Boolean(user)}
               name={pro.name}
               phone={pro.phone}
               priceFrom={pro.priceFrom}

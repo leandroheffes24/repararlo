@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, MessageCircle } from "lucide-react";
 import { confirmHiringProAction } from "@/app/panel/actions";
 import { formatDate } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ type Row = {
   proDeclined: boolean;
 };
 
-export function ProContacts({ contacts }: { contacts: Row[] }) {
+export function ProContacts({ contacts, proSlug }: { contacts: Row[]; proSlug: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -25,6 +25,16 @@ export function ProContacts({ contacts }: { contacts: Row[] }) {
     const res = await confirmHiringProAction(id, decision);
     setBusy(null);
     if (res.ok) router.refresh();
+  }
+
+  function pedirResena(clientName: string) {
+    const url = `${window.location.origin}/profesionales/${proSlug}`;
+    const nombre = clientName && clientName !== "Cliente" ? ` ${clientName.split(" ")[0]}` : "";
+    const msg =
+      `¡Hola${nombre}! Gracias por contactarme por Repararlo 🙌 ` +
+      `Cuando puedas, confirmá que trabajamos juntos y dejame tu reseña acá ` +
+      `(te toma 10 segundos): ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   }
 
   if (contacts.length === 0) {
@@ -55,7 +65,15 @@ export function ProContacts({ contacts }: { contacts: Row[] }) {
                 Te contactó el {formatDate(c.createdAt)} · {estadoCliente}
               </p>
             </div>
-            <div className="flex shrink-0 gap-2">
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <button
+                onClick={() => pedirResena(c.clientName)}
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
+                title="Enviarle un WhatsApp para que confirme y te reseñe"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Pedir reseña
+              </button>
               <button
                 onClick={() => respond(c.id, "yes")}
                 disabled={busy !== null}

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Phone, MessageCircle, Shield, Eye } from "lucide-react";
+import { Phone, MessageCircle, Shield, Eye, LogIn } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export function ContactCard({
   professionalId,
+  slug,
+  isLoggedIn,
   name,
   phone,
   priceFrom,
@@ -15,6 +18,8 @@ export function ContactCard({
   available,
 }: {
   professionalId: string;
+  slug: string;
+  isLoggedIn: boolean;
   name: string;
   phone: string;
   priceFrom?: number;
@@ -64,7 +69,27 @@ export function ContactCard({
       </p>
       <p className="mt-1 text-sm text-slate-500">{respondsIn}</p>
 
-      {!revealed ? (
+      {!isLoggedIn ? (
+        <div className="mt-5 space-y-2.5">
+          <Link
+            href={`/ingresar?next=/profesionales/${slug}`}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            <LogIn className="h-5 w-5" />
+            Ingresá para ver el contacto
+          </Link>
+          <Link
+            href={`/registrarse?next=/profesionales/${slug}`}
+            className="flex w-full items-center justify-center rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-800 transition-colors hover:bg-slate-50"
+          >
+            Crear cuenta gratis
+          </Link>
+          <p className="text-center text-xs text-slate-400">
+            Con tu cuenta (gratis) contactás al profesional y después podés dejarle tu
+            reseña.
+          </p>
+        </div>
+      ) : !revealed ? (
         <button
           onClick={reveal}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-brand-700"
