@@ -25,15 +25,19 @@ export async function POST(request: Request) {
   if (!db) return NextResponse.json({ ok: false });
 
   // Asegurar que exista el profile del usuario (FK de contacts.client_id)
+  // y guardar su teléfono (para que el profesional pueda escribirle por WhatsApp).
+  const phone = (user.user_metadata?.phone as string) ?? null;
   const { data: prof } = await db
     .from("profiles")
-    .select("id")
+    .select("id, phone")
     .eq("id", user.id)
     .maybeSingle();
   if (!prof) {
     const name =
       (user.user_metadata?.full_name as string) || user.email?.split("@")[0] || "Usuario";
-    await db.from("profiles").insert({ id: user.id, full_name: name, role: "client" });
+    await db.from("profiles").insert({ id: user.id, full_name: name, role: "client", phone });
+  } else if (!prof.phone && phone) {
+    await db.from("profiles").update({ phone }).eq("id", user.id);
   }
 
   // Registrar contacto solo si es la primera vez (para notificar una sola vez).

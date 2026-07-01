@@ -33,7 +33,8 @@
       "PowerShell(node --env-file=.env.local _cron_diag.mjs)",
       "PowerShell(node --env-file=.env.local _cron_setup.mjs)",
       "PowerShell(node --env-file=.env.local _cron_cleanup.mjs)",
-      "PowerShell(node --env-file=.env.local _seo_verify.mjs)"
+      "PowerShell(node --env-file=.env.local _seo_verify.mjs)",
+      "PowerShell(node --env-file=.env.local _phonetest.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo",

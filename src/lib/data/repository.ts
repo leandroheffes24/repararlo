@@ -252,6 +252,7 @@ export async function getReviewEligibility(
 export type ProContact = {
   id: string;
   clientName: string;
+  clientPhone: string;
   createdAt: string;
   clientConfirmed: boolean;
   clientDeclined: boolean;
@@ -266,7 +267,10 @@ type ContactRow = {
   pro_confirmed?: boolean;
   client_declined?: boolean;
   pro_declined?: boolean;
-  profiles?: { full_name?: string } | { full_name?: string }[] | null;
+  profiles?:
+    | { full_name?: string; phone?: string }
+    | { full_name?: string; phone?: string }[]
+    | null;
 };
 
 /** Lista de clientes que contactaron a un profesional (para que confirme trabajos). */
@@ -274,8 +278,8 @@ export async function getProContacts(professionalId: string): Promise<ProContact
   const db = getServiceSupabase();
   if (!db) return [];
   const cols =
-    "id, created_at, client_confirmed, pro_confirmed, client_declined, pro_declined, profiles(full_name)";
-  const colsBasic = "id, created_at, client_confirmed, pro_confirmed, profiles(full_name)";
+    "id, created_at, client_confirmed, pro_confirmed, client_declined, pro_declined, profiles(full_name, phone)";
+  const colsBasic = "id, created_at, client_confirmed, pro_confirmed, profiles(full_name, phone)";
 
   let rows: ContactRow[] | null = null;
   try {
@@ -304,6 +308,7 @@ export async function getProContacts(professionalId: string): Promise<ProContact
     return {
       id: r.id,
       clientName: prof?.full_name || "Cliente",
+      clientPhone: prof?.phone || "",
       createdAt: r.created_at,
       clientConfirmed: Boolean(r.client_confirmed),
       clientDeclined: Boolean(r.client_declined),

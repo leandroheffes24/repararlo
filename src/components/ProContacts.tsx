@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Check, X, MessageCircle } from "lucide-react";
 import { confirmHiringProAction } from "@/app/panel/actions";
-import { formatDate } from "@/lib/utils";
+import { formatDate, toWhatsAppNumber } from "@/lib/utils";
 
 type Row = {
   id: string;
   clientName: string;
+  clientPhone: string;
   createdAt: string;
   clientConfirmed: boolean;
   clientDeclined: boolean;
@@ -27,14 +28,19 @@ export function ProContacts({ contacts, proSlug }: { contacts: Row[]; proSlug: s
     if (res.ok) router.refresh();
   }
 
-  function pedirResena(clientName: string) {
+  function pedirResena(clientName: string, clientPhone: string) {
     const url = `${window.location.origin}/profesionales/${proSlug}`;
     const nombre = clientName && clientName !== "Cliente" ? ` ${clientName.split(" ")[0]}` : "";
     const msg =
       `¡Hola${nombre}! Gracias por contactarme por Repararlo 🙌 ` +
       `Cuando puedas, confirmá que trabajamos juntos y dejame tu reseña acá ` +
       `(te toma 10 segundos): ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+    const num = toWhatsAppNumber(clientPhone);
+    // Si tenemos el número del cliente, abrimos el chat directo; si no, dejamos que elija.
+    const link = num
+      ? `https://wa.me/${num}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(link, "_blank");
   }
 
   if (contacts.length === 0) {
@@ -67,7 +73,7 @@ export function ProContacts({ contacts, proSlug }: { contacts: Row[]; proSlug: s
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
               <button
-                onClick={() => pedirResena(c.clientName)}
+                onClick={() => pedirResena(c.clientName, c.clientPhone)}
                 className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
                 title="Enviarle un WhatsApp para que confirme y te reseñe"
               >

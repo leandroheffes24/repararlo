@@ -34,8 +34,13 @@ export function RegisterForm({
     const form = new FormData(e.currentTarget);
     const fullName = String(form.get("fullName") ?? "").trim();
     const email = String(form.get("email") ?? "").trim();
+    const phone = String(form.get("phone") ?? "").trim();
     const password = String(form.get("password") ?? "");
 
+    if (phone.replace(/\D/g, "").length < 8) {
+      setError("Ingresá un número de teléfono válido (con característica).");
+      return;
+    }
     if (password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres.");
       return;
@@ -47,7 +52,7 @@ export function RegisterForm({
       email,
       password,
       options: {
-        data: { full_name: fullName, role },
+        data: { full_name: fullName, role, phone },
         emailRedirectTo:
           typeof window !== "undefined" ? `${window.location.origin}/ingresar` : undefined,
       },
@@ -125,6 +130,15 @@ export function RegisterForm({
         </Field>
         <Field label="Email">
           <input required name="email" type="email" placeholder="tu@email.com" className={inputClass} />
+        </Field>
+        <Field label="Teléfono / WhatsApp">
+          <input
+            required
+            name="phone"
+            type="tel"
+            placeholder="Ej: 11 2345-6789"
+            className={inputClass}
+          />
         </Field>
         <Field label="Contraseña">
           <input

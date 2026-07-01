@@ -28,6 +28,18 @@ export function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+/**
+ * Convierte un teléfono a formato para wa.me (solo dígitos, con código de país).
+ * Best-effort para Argentina: si no trae 54, asume móvil AR (549 + número).
+ */
+export function toWhatsAppNumber(phone: string | null | undefined): string {
+  let d = (phone || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.startsWith("54")) return d;
+  d = d.replace(/^0/, ""); // sacar 0 inicial
+  return `549${d}`;
+}
+
 export function slugify(text: string): string {
   return normalize(text)
     .replace(/[^a-z0-9]+/g, "-")
