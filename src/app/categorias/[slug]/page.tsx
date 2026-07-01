@@ -7,6 +7,8 @@ import { getProfessionalsByCategory } from "@/lib/data/repository";
 import { filterProfessionals } from "@/lib/utils";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { CategoryCard } from "@/components/CategoryCard";
+import { JsonLd } from "@/components/JsonLd";
+import { absoluteUrl } from "@/lib/seo";
 
 export const revalidate = 30;
 
@@ -22,9 +24,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const category = categoryBySlug(slug);
   if (!category) return { title: "Rubro no encontrado" };
+  const url = absoluteUrl(`/categorias/${category.slug}`);
+  const description = `Encontrá ${category.singular}s verificados cerca tuyo. ${category.description} Contactalos gratis en Repararlo.`;
   return {
     title: `${category.name} cerca tuyo`,
-    description: `Encontrá ${category.singular}s verificados. ${category.description}`,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title: `${category.name} — Repararlo`, description, url, type: "website" },
   };
 }
 
@@ -43,8 +49,19 @@ export default async function CategoryPage({
 
   const otherCategories = categories.filter((c) => c.slug !== category.slug).slice(0, 4);
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: absoluteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Servicios", item: absoluteUrl("/buscar") },
+      { "@type": "ListItem", position: 3, name: category.name, item: absoluteUrl(`/categorias/${category.slug}`) },
+    ],
+  };
+
   return (
     <>
+      <JsonLd data={breadcrumbLd} />
       {/* Hero del rubro */}
       <section className="bg-brand-gradient">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">

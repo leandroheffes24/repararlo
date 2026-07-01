@@ -14,6 +14,8 @@ import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { categories } from "@/lib/data/categories";
 import { getProfessionals } from "@/lib/data/repository";
 import { filterProfessionals } from "@/lib/utils";
+import { JsonLd } from "@/components/JsonLd";
+import { siteUrl } from "@/lib/seo";
 
 export const revalidate = 30;
 
@@ -25,8 +27,31 @@ export default async function Home() {
 
   const popularCats = categories.slice(0, 8);
 
+  const base = siteUrl();
+  const organizationLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Repararlo",
+    url: base,
+    description:
+      "Plataforma de servicios para el hogar en Argentina: plomeros, electricistas, albañiles y más, verificados y con reseñas reales.",
+  };
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Repararlo",
+    url: base,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${base}/buscar?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      <JsonLd data={organizationLd} />
+      <JsonLd data={websiteLd} />
       {/* HERO */}
       <section className="bg-brand-gradient">
         <div className="mx-auto max-w-5xl px-4 pb-16 pt-16 text-center sm:px-6 sm:pt-24 lg:px-8">

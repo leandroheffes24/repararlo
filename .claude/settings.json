@@ -29,7 +29,11 @@
       "PowerShell(node --env-file=.env.local _avdiag.mjs)",
       "PowerShell(node --env-file=.env.local _avfix.mjs)",
       "PowerShell(node --env-file=.env.local _verify.mjs)",
-      "WebSearch"
+      "WebSearch",
+      "PowerShell(node --env-file=.env.local _cron_diag.mjs)",
+      "PowerShell(node --env-file=.env.local _cron_setup.mjs)",
+      "PowerShell(node --env-file=.env.local _cron_cleanup.mjs)",
+      "PowerShell(node --env-file=.env.local _seo_verify.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo",

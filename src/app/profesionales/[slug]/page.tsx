@@ -15,6 +15,8 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ContactCard } from "@/components/ContactCard";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ClientConfirmHiring } from "@/components/ClientConfirmHiring";
+import { JsonLd } from "@/components/JsonLd";
+import { absoluteUrl } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -27,9 +29,22 @@ export async function generateMetadata({
   const { slug } = await params;
   const pro = await getProfessionalBySlug(slug);
   if (!pro) return { title: "Profesional no encontrado" };
+  const url = absoluteUrl(`/profesionales/${pro.slug}`);
+  const description = (
+    pro.about ||
+    `${pro.headline}. ${pro.city}${pro.province ? `, ${pro.province}` : ""}. Contactalo gratis en Repararlo.`
+  ).slice(0, 160);
   return {
     title: `${pro.name} — ${pro.headline}`,
-    description: `${pro.name}: ${pro.about.slice(0, 150)}`,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${pro.name} — ${pro.headline}`,
+      description,
+      url,
+      type: "profile",
+      ...(pro.avatarUrl ? { images: [pro.avatarUrl] } : {}),
+    },
   };
 }
 
@@ -55,8 +70,55 @@ export default async function ProfessionalPage({
   // Puede ver el formulario si ya tiene reseña (para editar) o si contactó.
   const canReview = Boolean(existingReview) || Boolean(eligibility?.canReview);
 
+  const profileUrl = absoluteUrl(`/profesionales/${pro.slug}`);
+  const businessLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": profileUrl,
+    name: pro.name,
+    description: pro.about || pro.headline,
+    url: profileUrl,
+    ...(pro.avatarUrl ? { image: pro.avatarUrl } : {}),
+    ...(pro.serviceAreas.length ? { areaServed: pro.serviceAreas } : {}),
+    address: {
+      "@type": "PostalAddress",
+      ...(pro.city ? { addressLocality: pro.city } : {}),
+      ...(pro.province ? { addressRegion: pro.province } : {}),
+      addressCountry: "AR",
+    },
+    ...(pro.reviewCount > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: pro.rating,
+            reviewCount: pro.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+          review: pro.reviews.slice(0, 5).map((r) => ({
+            "@type": "Review",
+            author: { "@type": "Person", name: r.author },
+            reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+            ...(r.comment ? { reviewBody: r.comment } : {}),
+            datePublished: r.date,
+          })),
+        }
+      : {}),
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: absoluteUrl("/") },
+      { "@type": "ListItem", position: 2, name: "Profesionales", item: absoluteUrl("/buscar") },
+      { "@type": "ListItem", position: 3, name: pro.name, item: profileUrl },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <JsonLd data={businessLd} />
+      <JsonLd data={breadcrumbLd} />
       <Link
         href="/buscar"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"

@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { DeletedAccountToast } from "@/components/DeletedAccountToast";
+import { siteUrl } from "@/lib/seo";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,7 +21,7 @@ const display = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://repararlo.com.ar"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "Repararlo — Encontrá al profesional ideal para tu hogar",
     template: "%s · Repararlo",
