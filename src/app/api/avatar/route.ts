@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createSupabaseServer, getServiceSupabase } from "@/lib/supabase/server";
 
 const BUCKET = "avatares";
@@ -59,8 +60,15 @@ export async function POST(request: Request) {
   const url = `${data.publicUrl}?v=${Date.now()}`; // cache-busting
 
   // Persistir en el profesional (si tiene ficha). Resiliente si falta la columna.
+  let proSlug: string | null = null;
   try {
-    await db.from("professionals").update({ avatar_url: url }).eq("profile_id", user.id);
+    const { data: updated } = await db
+      .from("professionals")
+      .update({ avatar_url: url })
+      .eq("profile_id", user.id)
+      .select("slug")
+      .maybeSingle();
+    proSlug = updated?.slug ?? null;
   } catch {
     /* columna avatar_url todavía no existe: la foto igual queda subida */
   }
@@ -69,6 +77,11 @@ export async function POST(request: Request) {
   await db.auth.admin.updateUserById(user.id, {
     user_metadata: { ...user.user_metadata, avatar_url: url },
   });
+
+  // Refrescar el directorio para que la nueva foto aparezca enseguida.
+  revalidatePath("/");
+  revalidatePath("/buscar");
+  if (proSlug) revalidatePath(`/profesionales/${proSlug}`);
 
   return NextResponse.json({ url });
 }

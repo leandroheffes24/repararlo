@@ -1,9 +1,7 @@
 import Link from "next/link";
 import type { Category } from "@/lib/types";
-import { professionalsByCategory } from "@/lib/data/professionals";
 
 export function CategoryCard({ category }: { category: Category }) {
-  const count = professionalsByCategory(category.slug).length;
   return (
     <Link
       href={`/categorias/${category.slug}`}
@@ -18,8 +16,8 @@ export function CategoryCard({ category }: { category: Category }) {
         </h3>
         <p className="mt-1 line-clamp-2 text-sm text-slate-500">{category.description}</p>
       </div>
-      <span className="mt-auto text-xs font-medium text-slate-400">
-        {count > 0 ? `${count} profesional${count > 1 ? "es" : ""}` : "Próximamente"}
+      <span className="mt-auto text-xs font-semibold text-brand-600 group-hover:text-brand-700">
+        Ver profesionales →
       </span>
     </Link>
   );

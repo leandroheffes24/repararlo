@@ -1,5 +1,4 @@
 import type { Professional, Review } from "@/lib/types";
-import { professionals as seedProfessionals } from "@/lib/data/professionals";
 import { getServiceSupabase } from "@/lib/supabase/server";
 
 /**
@@ -75,7 +74,7 @@ function mapRow(row: ProRow, reviews: Review[] = []): Professional {
 
 export async function getProfessionals(): Promise<Professional[]> {
   const supabase = getServiceSupabase();
-  if (!supabase) return seedProfessionals;
+  if (!supabase) return [];
 
   try {
     const { data, error } = await supabase
@@ -84,10 +83,10 @@ export async function getProfessionals(): Promise<Professional[]> {
       .order("verified", { ascending: false })
       .order("rating", { ascending: false });
 
-    if (error || !data || data.length === 0) return seedProfessionals;
+    if (error || !data) return [];
     return (data as ProRow[]).map((row) => mapRow(row));
   } catch {
-    return seedProfessionals;
+    return [];
   }
 }
 
@@ -129,11 +128,11 @@ export async function getProfessionalBySlug(
         return mapRow(data as ProRow, reviews);
       }
     } catch {
-      // cae al seed
+      // sin resultado
     }
   }
 
-  return seedProfessionals.find((p) => p.slug === slug) ?? null;
+  return null;
 }
 
 /** Devuelve la fila cruda del profesional dueño de un perfil (para el panel). */
@@ -331,6 +330,26 @@ export async function getUserReview(
     return data ?? null;
   } catch {
     return null;
+  }
+}
+
+/** Recalcula "trabajos realizados" = contactos con confirmación mutua (ambos dijeron que sí). */
+export async function recomputeJobsDone(professionalId: string): Promise<void> {
+  const db = getServiceSupabase();
+  if (!db) return;
+  try {
+    const { count } = await db
+      .from("contacts")
+      .select("*", { count: "exact", head: true })
+      .eq("professional_id", professionalId)
+      .eq("client_confirmed", true)
+      .eq("pro_confirmed", true);
+    await db
+      .from("professionals")
+      .update({ jobs_done: count ?? 0 })
+      .eq("id", professionalId);
+  } catch {
+    /* ignore */
   }
 }
 

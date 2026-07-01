@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getServiceSupabase, createSupabaseServer } from "@/lib/supabase/server";
+import { recomputeJobsDone } from "@/lib/data/repository";
 import { slugify } from "@/lib/utils";
 
 export type ProfileInput = {
@@ -68,6 +69,9 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
     phone: input.phone.trim() || null,
     available: input.available,
     photos: (input.photos ?? []).filter(Boolean).slice(0, 12),
+    // Sincronizamos la foto de perfil desde los datos del usuario, así la ficha
+    // (que ve el buscador) siempre tiene la misma foto que el panel.
+    avatar_url: (user.user_metadata?.avatar_url as string) ?? null,
   };
 
   // 3. ¿Ya existe el profesional de este usuario?
@@ -80,18 +84,19 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
   let proId: string;
   let slug: string;
 
-  // Si la columna "photos" todavía no existe (no corrieron 03-fotos.sql),
-  // reintentamos sin fotos para no romper el guardado del resto del perfil.
-  const isMissingPhotos = (msg?: string) => !!msg && /photos/i.test(msg);
-  const { photos: _omit, ...fieldsNoPhotos } = fields;
-  void _omit;
+  // Si alguna columna opcional todavía no existe (no corrieron 03/04),
+  // reintentamos sin ellas para no romper el guardado del resto del perfil.
+  const isMissingOptionalCol = (msg?: string) => !!msg && /(photos|avatar_url)/i.test(msg);
+  const { photos: _p, avatar_url: _a, ...fieldsSafe } = fields;
+  void _p;
+  void _a;
 
   if (existing) {
     proId = existing.id;
     slug = existing.slug;
     let { error } = await db.from("professionals").update(fields).eq("id", proId);
-    if (isMissingPhotos(error?.message)) {
-      ({ error } = await db.from("professionals").update(fieldsNoPhotos).eq("id", proId));
+    if (isMissingOptionalCol(error?.message)) {
+      ({ error } = await db.from("professionals").update(fieldsSafe).eq("id", proId));
     }
     if (error) return { ok: false, error: "No pudimos guardar los cambios." };
   } else {
@@ -101,10 +106,10 @@ export async function saveProfileAction(input: ProfileInput): Promise<SaveResult
       .insert({ ...fields, profile_id: user.id, slug })
       .select("id")
       .single();
-    if (isMissingPhotos(error?.message)) {
+    if (isMissingOptionalCol(error?.message)) {
       ({ data: inserted, error } = await db
         .from("professionals")
-        .insert({ ...fieldsNoPhotos, profile_id: user.id, slug })
+        .insert({ ...fieldsSafe, profile_id: user.id, slug })
         .select("id")
         .single());
     }
@@ -148,7 +153,7 @@ export async function confirmHiringProAction(
   // Traer el contacto y verificar que el profesional sea el dueño
   const { data: contact } = await db
     .from("contacts")
-    .select("id, professionals(profile_id, slug)")
+    .select("id, professional_id, professionals(profile_id, slug)")
     .eq("id", contactId)
     .maybeSingle();
   if (!contact) return { ok: false, error: "No encontramos el contacto." };
@@ -171,7 +176,12 @@ export async function confirmHiringProAction(
   }
   if (error) return { ok: false, error: "No pudimos guardar tu respuesta." };
 
+  // Recalcular "trabajos realizados" (confirmación mutua)
+  await recomputeJobsDone(contact.professional_id as string);
+
   revalidatePath("/panel");
+  revalidatePath("/buscar");
+  revalidatePath("/");
   if (proRel.slug) revalidatePath(`/profesionales/${proRel.slug}`);
   return { ok: true };
 }

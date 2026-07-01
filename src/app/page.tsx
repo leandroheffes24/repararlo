@@ -67,12 +67,12 @@ export default async function Home() {
 
           <dl className="mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-4">
             {[
-              { value: "+2.500", label: "profesionales" },
-              { value: "+18.000", label: "trabajos realizados" },
-              { value: "4,8 ★", label: "promedio de reseñas" },
+              { value: "Gratis", label: "buscar y contactar" },
+              { value: "Verificados", label: "profesionales de confianza" },
+              { value: "Sin comisiones", label: "el precio lo arreglan ustedes" },
             ].map((stat) => (
               <div key={stat.label} className="rounded-2xl bg-white/70 px-4 py-4 ring-1 ring-slate-100">
-                <dt className="font-display text-2xl font-extrabold text-slate-900 sm:text-3xl">
+                <dt className="font-display text-lg font-extrabold text-slate-900 sm:text-xl">
                   {stat.value}
                 </dt>
                 <dd className="mt-1 text-sm text-slate-500">{stat.label}</dd>
@@ -155,29 +155,31 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* DESTACADOS */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
-              Profesionales mejor puntuados
-            </h2>
-            <p className="mt-2 text-slate-600">Los favoritos de la comunidad esta semana.</p>
+      {/* DESTACADOS (solo si hay profesionales reales) */}
+      {featured.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
+                Profesionales mejor puntuados
+              </h2>
+              <p className="mt-2 text-slate-600">Los mejor calificados por la comunidad.</p>
+            </div>
+            <Link
+              href="/buscar"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700"
+            >
+              Ver todos <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <Link
-            href="/buscar"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700"
-          >
-            Ver todos <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((pro) => (
-            <ProfessionalCard key={pro.id} pro={pro} />
-          ))}
-        </div>
-      </section>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((pro) => (
+              <ProfessionalCard key={pro.id} pro={pro} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CONFIANZA */}
       <section className="border-y border-slate-100 bg-slate-50">

@@ -70,13 +70,13 @@ export default async function SumatePage() {
 
             <div className="mt-8 flex items-center gap-6 rounded-2xl bg-white/80 px-6 py-5 shadow-[var(--shadow-card)]">
               <div>
-                <p className="font-display text-2xl font-extrabold text-slate-900">+2.500</p>
-                <p className="text-sm text-slate-500">profesionales activos</p>
+                <p className="font-display text-2xl font-extrabold text-slate-900">$0</p>
+                <p className="text-sm text-slate-500">costo de registro</p>
               </div>
               <div className="h-10 w-px bg-slate-200" />
               <div>
-                <p className="font-display text-2xl font-extrabold text-slate-900">$0</p>
-                <p className="text-sm text-slate-500">costo de registro</p>
+                <p className="font-display text-2xl font-extrabold text-slate-900">Sin comisiones</p>
+                <p className="text-sm text-slate-500">lo que cobrás es tuyo</p>
               </div>
             </div>
           </div>

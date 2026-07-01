@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServer, getServiceSupabase } from "@/lib/supabase/server";
-import { getReviewEligibility } from "@/lib/data/repository";
+import { getReviewEligibility, recomputeJobsDone } from "@/lib/data/repository";
 
 export type ReviewInput = {
   professionalId: string;
@@ -154,11 +154,16 @@ export async function confirmHiringClientAction(
   }
   if (error) return { ok: false, error: "No pudimos registrar tu respuesta." };
 
+  // Recalcular "trabajos realizados" (confirmación mutua)
+  await recomputeJobsDone(professionalId);
+
   const { data: pro } = await db
     .from("professionals")
     .select("slug")
     .eq("id", professionalId)
     .maybeSingle();
   if (pro?.slug) revalidatePath(`/profesionales/${pro.slug}`);
+  revalidatePath("/buscar");
+  revalidatePath("/");
   return { ok: true };
 }
