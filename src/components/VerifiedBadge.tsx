@@ -9,9 +9,7 @@ export function VerifiedBadge({
 }) {
   if (withLabel) {
     return (
-      <span
-        className={`inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 ${className}`}
-      >
+      <span className={`stamp text-emerald-700 ${className}`}>
         <BadgeCheck className="h-3.5 w-3.5" />
         Verificado
       </span>
@@ -19,7 +17,7 @@ export function VerifiedBadge({
   }
   return (
     <BadgeCheck
-      className={`h-5 w-5 text-brand-600 ${className}`}
+      className={`h-5 w-5 text-emerald-600 ${className}`}
       aria-label="Profesional verificado"
     />
   );

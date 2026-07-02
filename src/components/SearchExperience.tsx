@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, MapPin, SlidersHorizontal, X, Star, Frown } from "lucide-react";
 import { ProfessionalCard } from "./ProfessionalCard";
 import { ProvinceSelect } from "./ProvinceSelect";
+import { CategoryIcon } from "./CategoryIcon";
 import { categories } from "@/lib/data/categories";
 import { provinceById } from "@/lib/data/provinces";
 import type { Professional } from "@/lib/types";
@@ -159,7 +160,7 @@ export function SearchExperience({
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
-              <span>{c.icon}</span>
+              <CategoryIcon slug={c.slug} className="h-4 w-4 shrink-0" />
               {c.name}
             </button>
           ))}

@@ -34,7 +34,9 @@
       "PowerShell(node --env-file=.env.local _cron_setup.mjs)",
       "PowerShell(node --env-file=.env.local _cron_cleanup.mjs)",
       "PowerShell(node --env-file=.env.local _seo_verify.mjs)",
-      "PowerShell(node --env-file=.env.local _phonetest.mjs)"
+      "PowerShell(node --env-file=.env.local _phonetest.mjs)",
+      "PowerShell(python --version)",
+      "PowerShell(python \"C:\\\\Users\\\\Trabajo\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"home services marketplace trades local trust argentina directory\" --design-system -p \"Repararlo\" 2>&1)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Trabajo\\Desktop\\Repararlo",

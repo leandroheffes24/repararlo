@@ -32,10 +32,10 @@ export function SearchBar({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full flex-col gap-2 rounded-2xl bg-white p-2 shadow-[var(--shadow-card-hover)] ring-1 ring-slate-100 sm:flex-row sm:items-center sm:rounded-full"
+      className="flex w-full flex-col gap-2 rounded-2xl border-2 border-brand-700 bg-white p-2 shadow-[6px_6px_0_0_#1d2433] sm:flex-row sm:items-center"
     >
       <div className={`flex flex-1 items-center gap-2.5 px-4 ${pad}`}>
-        <Search className="h-5 w-5 shrink-0 text-slate-400" />
+        <Search className="h-5 w-5 shrink-0 text-brand-300" />
         <input
           type="text"
           list="cat-list"
@@ -52,10 +52,10 @@ export function SearchBar({
         </datalist>
       </div>
 
-      <div className="hidden h-8 w-px bg-slate-200 sm:block" />
+      <div className="hidden h-8 w-0.5 bg-brand-700/15 sm:block" />
 
       <div className={`flex flex-1 items-center gap-2.5 px-4 ${pad}`}>
-        <MapPin className="h-5 w-5 shrink-0 text-slate-400" />
+        <MapPin className="h-5 w-5 shrink-0 text-brand-300" />
         <ProvinceSelect
           value={provinceId}
           onChange={setProvinceId}
@@ -66,7 +66,7 @@ export function SearchBar({
 
       <button
         type="submit"
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-brand-700 bg-accent-400 px-6 py-3 font-display text-brand-700 transition-all hover:-translate-y-0.5 hover:bg-accent-300"
       >
         <Search className="h-5 w-5 sm:hidden" />
         Buscar

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Archivo, Archivo_Black } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,17 +7,18 @@ import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { DeletedAccountToast } from "@/components/DeletedAccountToast";
 import { siteUrl } from "@/lib/seo";
 
-const inter = Inter({
-  variable: "--font-inter",
+/* Archivo y Archivo Black: tipografías de Omnibus-Type (Argentina) */
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
   display: "swap",
 });
 
-const display = Plus_Jakarta_Sans({
-  variable: "--font-display",
+const archivoBlack = Archivo_Black({
+  variable: "--font-archivo-black",
   subsets: ["latin"],
   display: "swap",
-  weight: ["600", "700", "800"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -55,10 +56,10 @@ export default function RootLayout({
   return (
     <html
       lang="es-AR"
-      className={`${inter.variable} ${display.variable} h-full`}
+      className={`${archivo.variable} ${archivoBlack.variable} h-full`}
     >
       <body
-        className="min-h-full flex flex-col bg-white text-slate-900 antialiased"
+        className="min-h-full flex flex-col antialiased"
         suppressHydrationWarning
       >
         <Header />

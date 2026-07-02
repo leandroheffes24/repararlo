@@ -7,6 +7,7 @@ import { getProfessionalsByCategory } from "@/lib/data/repository";
 import { filterProfessionals } from "@/lib/utils";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { CategoryCard } from "@/components/CategoryCard";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -78,8 +79,8 @@ export default async function CategoryPage({
           </nav>
 
           <div className="mt-6 flex items-start gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white text-4xl shadow-sm">
-              {category.icon}
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-brand-700 bg-accent-400 text-brand-700 shadow-[4px_4px_0_0_#1d2433]">
+              <CategoryIcon slug={category.slug} className="h-8 w-8" />
             </span>
             <div>
               <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">

@@ -1,40 +1,53 @@
 @import "tailwindcss";
 
-@theme {
-  /* Brand — azul confianza */
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #d9e6ff;
-  --color-brand-200: #bcd3ff;
-  --color-brand-300: #8eb6ff;
-  --color-brand-400: #5a8dff;
-  --color-brand-500: #3366ff;
-  --color-brand-600: #1f4fe0;
-  --color-brand-700: #1a3fb8;
-  --color-brand-800: #1c3893;
-  --color-brand-900: #1b3478;
+/* ============================================================
+   REPARARLO · Sistema de diseño "El Oficio"
+   Estética de taller: tinta workwear + papel cálido + amarillo obra.
+   Tipografía Archivo (Omnibus-Type, Argentina).
+   Firmas visuales: sombras duras desplazadas, bordes marcados,
+   franja de peligro, sellos estampados.
+   ============================================================ */
 
-  /* Accent — ámbar / herramienta */
-  --color-accent-50: #fff8eb;
-  --color-accent-100: #ffedc7;
-  --color-accent-200: #ffd98a;
-  --color-accent-300: #ffc04d;
-  --color-accent-400: #fbab24;
-  --color-accent-500: #f59e0b;
-  --color-accent-600: #d97706;
-  --color-accent-700: #b45309;
+@theme {
+  /* Tinta (azul-noche workwear) — escala "brand" */
+  --color-brand-50: #f1f3f8;
+  --color-brand-100: #e3e7f0;
+  --color-brand-200: #c5cde0;
+  --color-brand-300: #9aa7c4;
+  --color-brand-400: #6a7ba1;
+  --color-brand-500: #46557d;
+  --color-brand-600: #232c45;
+  --color-brand-700: #1b2338;
+  --color-brand-800: #161c2e;
+  --color-brand-900: #101523;
+
+  /* Amarillo obra (alta visibilidad) — escala "accent" */
+  --color-accent-50: #fff8e0;
+  --color-accent-100: #ffefbd;
+  --color-accent-200: #ffe38a;
+  --color-accent-300: #ffd44d;
+  --color-accent-400: #ffc22e;
+  --color-accent-500: #f5ad00;
+  --color-accent-600: #d69300;
+  --color-accent-700: #a87200;
 
   /* Tipografías */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo-black), var(--font-archivo), ui-sans-serif, sans-serif;
 
-  /* Sombra de marca */
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 24px rgba(16, 24, 40, 0.06);
-  --shadow-card-hover: 0 2px 4px rgba(16, 24, 40, 0.06), 0 12px 36px rgba(16, 24, 40, 0.12);
+  /* Radios levemente más firmes (menos "burbuja") */
+  --radius-xl: 0.65rem;
+  --radius-2xl: 0.85rem;
+  --radius-3xl: 1.1rem;
+
+  /* Sombras duras (desplazadas, sin difuminar): firma de la marca */
+  --shadow-card: 4px 4px 0 0 rgb(28 35 56 / 0.09);
+  --shadow-card-hover: 7px 7px 0 0 rgb(28 35 56 / 0.16);
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --ink: #1d2433;
+  --paper: #f8f5ee;
 }
 
 html {
@@ -42,25 +55,99 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Utilidad: degradé de marca para secciones hero */
+/* Selección de texto: amarillo obra */
+::selection {
+  background: #ffc22e;
+  color: #1d2433;
+}
+
+/* Foco visible consistente (accesibilidad) */
+:focus-visible {
+  outline: 2px solid #1d2433;
+  outline-offset: 2px;
+}
+
+/* Fondo de secciones hero: papel de taller con cuadrícula técnica */
 .bg-brand-gradient {
-  background-image: radial-gradient(
-      1200px 600px at 100% -10%,
-      rgba(51, 102, 255, 0.18),
-      transparent 60%
-    ),
-    radial-gradient(900px 500px at -10% 10%, rgba(245, 158, 11, 0.12), transparent 55%),
-    linear-gradient(180deg, #f7f9ff 0%, #ffffff 100%);
+  background-color: #f4f0e6;
+  background-image:
+    linear-gradient(rgb(29 36 51 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(29 36 51 / 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Franja de peligro (cinta de obra): firma visual de la marca */
+.hazard {
+  height: 8px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #1d2433 0,
+    #1d2433 12px,
+    #ffc22e 12px,
+    #ffc22e 24px
+  );
+}
+.hazard-thin {
+  height: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #1d2433 0,
+    #1d2433 8px,
+    #ffc22e 8px,
+    #ffc22e 16px
+  );
+}
+
+/* Subrayado marcador (resaltador amarillo detrás del texto) */
+.marker-underline {
+  background-image: linear-gradient(0deg, rgb(255 194 46 / 0.85) 0 38%, transparent 38%);
+  padding: 0 0.08em;
+}
+
+/* Sello estampado (VERIFICADO) */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 2px solid currentColor;
+  border-radius: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  transform: rotate(-1.5deg);
+}
+
+/* Tarjeta de taller: borde marcado + sombra dura */
+.card-taller {
+  background: #ffffff;
+  border: 2px solid #1d2433;
+  border-radius: var(--radius-2xl);
+  box-shadow: 5px 5px 0 0 #1d2433;
 }
 
 /* Scrollbar sutil */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #c3cadd transparent;
+}
+
+/* Respetar reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

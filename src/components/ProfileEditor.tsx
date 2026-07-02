@@ -7,6 +7,7 @@ import { categories } from "@/lib/data/categories";
 import { provinces, provinceByName } from "@/lib/data/provinces";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 import { ServiceAreasInput } from "./ServiceAreasInput";
+import { CategoryIcon } from "./CategoryIcon";
 import { WorkPhotosUploader } from "./WorkPhotosUploader";
 import { saveProfileAction, type ProfileInput } from "@/app/panel/actions";
 
@@ -130,7 +131,7 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
                     : "border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <span>{c.icon}</span>
+                <CategoryIcon slug={c.slug} className="h-4 w-4 shrink-0" />
                 {c.name}
               </button>
             );

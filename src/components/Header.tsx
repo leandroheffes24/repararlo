@@ -36,7 +36,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b-2 border-brand-700/10 bg-[#f8f5ee]/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
 
@@ -87,7 +87,7 @@ export function Header() {
               </Link>
               <Link
                 href="/registrarse?rol=profesional"
-                className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+                className="inline-flex items-center rounded-lg border-2 border-brand-700 bg-accent-400 px-4 py-2 text-sm font-bold text-brand-700 shadow-[3px_3px_0_0_#1d2433] transition-all hover:-translate-y-0.5 hover:shadow-[4px_5px_0_0_#1d2433]"
               >
                 Sumate gratis
               </Link>
@@ -107,7 +107,7 @@ export function Header() {
       </div>
 
       {open && (
-        <div className="border-t border-slate-100 bg-white md:hidden">
+        <div className="border-t-2 border-brand-700/10 bg-[#f8f5ee] md:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
             <Link
               href="/buscar"
@@ -148,7 +148,7 @@ export function Header() {
                 <Link
                   href="/registrarse?rol=profesional"
                   onClick={() => setOpen(false)}
-                  className="mt-1 rounded-lg bg-brand-600 px-3 py-2.5 text-center text-base font-semibold text-white"
+                  className="mt-1 rounded-lg border-2 border-brand-700 bg-accent-400 px-3 py-2.5 text-center text-base font-bold text-brand-700"
                 >
                   Sumate gratis
                 </Link>

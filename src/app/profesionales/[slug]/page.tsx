@@ -16,6 +16,7 @@ import { ContactCard } from "@/components/ContactCard";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ClientConfirmHiring } from "@/components/ClientConfirmHiring";
 import { ReportProfile } from "@/components/ReportProfile";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
@@ -227,7 +228,7 @@ export default async function ProfessionalPage({
                     href={`/categorias/${slug}`}
                     className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-brand-200 hover:text-brand-700"
                   >
-                    <span>{c.icon}</span>
+                    <CategoryIcon slug={c.slug} className="h-4 w-4" />
                     {c.name}
                   </Link>
                 );
